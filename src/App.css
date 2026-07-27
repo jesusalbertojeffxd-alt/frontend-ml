@@ -1,0 +1,384 @@
+/* ============================================
+   FUTURISTIC STYLE SHEET — CYBERPUNK EDGE
+   ============================================ */
+
+/* ---------- RESET & BASE ---------- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  background: #0b0d15;
+  color: #d0d9f0;
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- VARIABLES (neón + oscuro) ---------- */
+:root {
+  --bg-primary: #0b0d15;
+  --bg-card: rgba(18, 22, 36, 0.7);
+  --border-glow: #00f5ff;
+  --accent: #00f5ff;
+  --accent-bg: rgba(0, 245, 255, 0.08);
+  --accent-border: #00f5ff;
+  --text-primary: #e8edff;
+  --text-secondary: #9aa9d4;
+  --text-h: #ffffff;
+  --shadow: 0 8px 32px rgba(0, 245, 255, 0.2);
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --border: rgba(0, 245, 255, 0.2);
+  --social-bg: rgba(0, 245, 255, 0.06);
+  --neon-pink: #ff2d95;
+  --neon-purple: #b026ff;
+}
+
+/* ---------- SCROLLBAR ---------- */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0b0d15;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 10px;
+  box-shadow: 0 0 12px var(--accent);
+}
+
+/* ---------- BUTTON / COUNTER (futurista) ---------- */
+.counter {
+  font-size: 16px;
+  padding: 8px 20px;
+  border-radius: 40px;
+  color: var(--accent);
+  background: var(--glass-bg);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(4px);
+  transition: all 0.3s ease;
+  margin-bottom: 24px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-weight: 500;
+  box-shadow: 0 0 12px rgba(0, 245, 255, 0.1);
+}
+
+.counter:hover {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 24px rgba(0, 245, 255, 0.3), inset 0 0 12px rgba(0, 245, 255, 0.1);
+  transform: scale(1.02);
+}
+
+.counter:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  box-shadow: 0 0 40px rgba(0, 245, 255, 0.4);
+}
+
+/* ---------- HERO (3D flotante) ---------- */
+.hero {
+  position: relative;
+  padding: 20px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hero .base,
+.hero .framework,
+.hero .vite {
+  inset-inline: 0;
+  margin: 0 auto;
+}
+
+.hero .base {
+  width: 170px;
+  position: relative;
+  z-index: 0;
+  filter: drop-shadow(0 0 20px rgba(0, 245, 255, 0.15));
+}
+
+.hero .framework,
+.hero .vite {
+  position: absolute;
+}
+
+.hero .framework {
+  z-index: 1;
+  top: 34px;
+  height: 28px;
+  transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg) scale(1.4);
+  filter: drop-shadow(0 0 30px rgba(255, 45, 149, 0.3));
+}
+
+.hero .vite {
+  z-index: 0;
+  top: 107px;
+  height: 26px;
+  width: auto;
+  transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg) scale(0.8);
+  filter: drop-shadow(0 0 30px rgba(176, 38, 255, 0.3));
+}
+
+/* ---------- CENTER (glassmorphism + neón) ---------- */
+#center {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  place-content: center;
+  place-items: center;
+  flex-grow: 1;
+  padding: 40px 20px;
+  background: radial-gradient(circle at 30% 20%, rgba(0, 245, 255, 0.03), transparent 60%);
+}
+
+#center h1 {
+  font-size: 3.2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent), var(--neon-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -1px;
+  text-shadow: 0 0 40px rgba(0, 245, 255, 0.2);
+}
+
+@media (max-width: 1024px) {
+  #center {
+    padding: 32px 20px 24px;
+    gap: 18px;
+  }
+  #center h1 {
+    font-size: 2.2rem;
+  }
+}
+
+/* ---------- NEXT STEPS (grid futurista) ---------- */
+#next-steps {
+  display: flex;
+  border-top: 1px solid var(--border);
+  text-align: left;
+  backdrop-filter: blur(2px);
+  background: var(--glass-bg);
+}
+
+#next-steps > div {
+  flex: 1 1 0;
+  padding: 32px;
+  transition: background 0.3s, box-shadow 0.3s;
+  border-radius: 12px;
+  margin: 4px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid transparent;
+}
+
+#next-steps > div:hover {
+  background: rgba(0, 245, 255, 0.04);
+  border-color: var(--border);
+  box-shadow: 0 0 30px rgba(0, 245, 255, 0.05);
+}
+
+#next-steps .icon {
+  margin-bottom: 16px;
+  width: 22px;
+  height: 22px;
+  filter: drop-shadow(0 0 8px var(--accent));
+}
+
+#next-steps h3 {
+  color: var(--text-h);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  margin-bottom: 6px;
+}
+
+#next-steps p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 1024px) {
+  #next-steps {
+    flex-direction: column;
+    text-align: center;
+  }
+  #next-steps > div {
+    padding: 24px 20px;
+    margin: 2px 0;
+  }
+}
+
+/* ---------- DOCS (separador neón) ---------- */
+#docs {
+  border-right: 1px solid var(--border);
+  position: relative;
+}
+
+#docs::after {
+  content: '';
+  position: absolute;
+  right: -2px;
+  top: 10%;
+  height: 80%;
+  width: 2px;
+  background: linear-gradient(to bottom, transparent, var(--accent), transparent);
+  opacity: 0.3;
+}
+
+@media (max-width: 1024px) {
+  #docs {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  #docs::after {
+    display: none;
+  }
+}
+
+/* ---------- LISTA DE ENLACES (botones neón) ---------- */
+#next-steps ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  gap: 10px;
+  margin: 32px 0 0;
+  flex-wrap: wrap;
+}
+
+#next-steps ul .logo {
+  height: 18px;
+  filter: drop-shadow(0 0 6px var(--accent));
+}
+
+#next-steps ul a {
+  color: var(--text-h);
+  font-size: 16px;
+  border-radius: 40px;
+  background: var(--social-bg);
+  display: flex;
+  padding: 8px 18px;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+  font-weight: 500;
+  backdrop-filter: blur(2px);
+}
+
+#next-steps ul a:hover {
+  box-shadow: 0 0 24px rgba(0, 245, 255, 0.2), 0 0 60px rgba(0, 245, 255, 0.05);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  background: rgba(0, 245, 255, 0.08);
+}
+
+#next-steps ul a .button-icon {
+  height: 18px;
+  width: 18px;
+  filter: drop-shadow(0 0 6px var(--neon-purple));
+}
+
+@media (max-width: 1024px) {
+  #next-steps ul {
+    margin-top: 20px;
+    justify-content: center;
+  }
+  #next-steps ul li {
+    flex: 1 1 calc(50% - 8px);
+    min-width: 120px;
+  }
+  #next-steps ul a {
+    width: 100%;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+}
+
+/* ---------- SPACER (con línea neón) ---------- */
+#spacer {
+  height: 88px;
+  border-top: 1px solid var(--border);
+  position: relative;
+  background: radial-gradient(ellipse at center, rgba(0, 245, 255, 0.02), transparent 70%);
+}
+
+#spacer::after {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 20%;
+  width: 60%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.3;
+}
+
+@media (max-width: 1024px) {
+  #spacer {
+    height: 48px;
+  }
+}
+
+/* ---------- TICKS (decoración neón) ---------- */
+.ticks {
+  position: relative;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+}
+
+.ticks::before,
+.ticks::after {
+  content: '';
+  position: absolute;
+  top: -6px;
+  border: 6px solid transparent;
+}
+
+.ticks::before {
+  left: 0;
+  border-left-color: var(--accent);
+  filter: drop-shadow(0 0 8px var(--accent));
+}
+
+.ticks::after {
+  right: 0;
+  border-right-color: var(--accent);
+  filter: drop-shadow(0 0 8px var(--accent));
+}
+
+/* ---------- ANIMACIONES FUTURISTAS ---------- */
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(0, 245, 255, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(0, 245, 255, 0.3), 0 0 80px rgba(0, 245, 255, 0.05);
+  }
+}
+
+.counter {
+  animation: pulse-glow 3s infinite ease-in-out;
+}
+
+/* ---------- UTILITY (neón text) ---------- */
+.neon-text {
+  color: var(--accent);
+  text-shadow: 0 0 20px rgba(0, 245, 255, 0.3), 0 0 60px rgba(0, 245, 255, 0.1);
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
