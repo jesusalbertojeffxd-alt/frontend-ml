@@ -1,4 +1,11 @@
-const API_URL = "http://localhost:8080/api/v1/";
+// ============================================
+// CONFIGURACIÓN DE LA API - AUTO-DETECCIÓN
+// ============================================
+// Si estamos en producción (Coolify), usa la URL del backend
+// Si estamos en desarrollo (localhost), usa localhost
+const API_URL = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
+    ? `http://${window.location.hostname}:8081/api/v1/`
+    : "http://localhost:8080/api/v1/";
 
 // Método helper para obtener las cabeceras con JWT
 const getHeaders = () => {
@@ -324,7 +331,7 @@ export const apiService = {
             {
                 method: 'POST',
                 headers: getHeaders(),
-                body: JSON.stringify({ idVenta, moneda: 'mxn' }), // ✅ Corregido: sin espacio
+                body: JSON.stringify({ idVenta, moneda: 'mxn' }),
             });
         return await handleResponse(response);
     },
