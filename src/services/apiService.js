@@ -1,8 +1,8 @@
 // ============================================
-// CONFIGURACIÓN DE LA API - URL DIRECTA AL BACKEND
+// CONFIGURACIÓN DE LA API
 // ============================================
-// Usamos la IP del servidor para evitar problemas de CORS
-const API_URL = "http://168.231.67.126:8081/api/v1/";
+// URL del backend en Coolify
+const API_URL = "http://epqy26ctakwdqnuavcsjlb33.168.231.67.126.sslip.io:8081/api/v1/";
 
 // Método helper para obtener las cabeceras con JWT
 const getHeaders = () => {
