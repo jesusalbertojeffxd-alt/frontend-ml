@@ -4,7 +4,7 @@ import { ShoppingCart, LogOut, User, LayoutDashboard, Database, ListOrdered, Sho
 
 export const Navbar = ({ VistaActual, setVistaActual, user, onLogout, carCount, openCart }) => {
     const handleLogout = () => {
-        apiService.logout();
+        apiService.Logout();  // ✅ CORREGIDO: L mayúscula
         onLogout();
         setVistaActual('catalogo');
     }
