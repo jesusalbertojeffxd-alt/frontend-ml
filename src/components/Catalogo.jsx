@@ -16,8 +16,10 @@ export const Catalogo = ({ setVistaActual, usuario, addToCart }) => {
             setCarga(true);
             try {
                 const datosProductos = await apiService.getProductos();
+                console.log('Productos recibidos:', datosProductos);
                 setProductos(datosProductos);
                 const datosCategorias = await apiService.getCategorias();
+                console.log('Categorias recibidas:', datosCategorias);
                 setCategorias(datosCategorias);
             } catch (err) {
                 setError('Error en el servidor backend: ' + err);
@@ -28,27 +30,22 @@ export const Catalogo = ({ setVistaActual, usuario, addToCart }) => {
         cargaDatosCatalogo();
     }, []);
     
-    //agregar al carrito - CORREGIDO
     const handleAddToCart = (producto) => {
-        // Verificar si el usuario existe (usando 'usuario' en lugar de 'user')
         if (!usuario) {
             setVistaActual('login');
             return;
         }
         
-        // Verificar el rol del usuario (usando 'usuario.rol' en lugar de 'user.role')
         if (usuario.rol !== 'ROLE_CLIENTE') {
             alert('Solo los usuarios registrados con el rol de cliente pueden realizar compras');
             return;
         }
         
-        // Verificar stock
         if (producto.stock <= 0) {
             alert('Este producto no tiene stock disponible');
             return;
         }
         
-        // Usar la función addToCart (en minúscula como viene de App)
         addToCart(producto);
     };
 
@@ -109,7 +106,6 @@ export const Catalogo = ({ setVistaActual, usuario, addToCart }) => {
                     backgroundColor: 'rgba(10, 12, 25, 0.8)'
                 }}
             >
-                {/* Partículas de fondo */}
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
                     {[...Array(15)].map((_, i) => (
                         <div
@@ -174,11 +170,9 @@ export const Catalogo = ({ setVistaActual, usuario, addToCart }) => {
                 </div>
             )}
 
-            {/* Buscador y Contenido */}
             <div className="flex flex-col md:flex-row gap-8">
                 {/* Filtros Lateral (Sidebar) */}
                 <div className="w-full md:w-1/4 flex-shrink-0 space-y-6">
-                    {/* Tarjeta de Búsqueda */}
                     <div className="p-5 rounded-2xl space-y-3"
                         style={{
                             background: 'rgba(15, 18, 30, 0.85)',
@@ -223,7 +217,6 @@ export const Catalogo = ({ setVistaActual, usuario, addToCart }) => {
                         </div>
                     </div>
 
-                    {/* Tarjeta de Categorías */}
                     <div className="p-5 rounded-2xl space-y-4"
                         style={{
                             background: 'rgba(15, 18, 30, 0.85)',
@@ -321,7 +314,6 @@ export const Catalogo = ({ setVistaActual, usuario, addToCart }) => {
                         </div>
                     </div>
 
-                    {/* Stats rápidos */}
                     <div className="p-4 rounded-2xl text-center"
                         style={{
                             background: 'rgba(15, 18, 30, 0.8)',
@@ -402,7 +394,6 @@ export const Catalogo = ({ setVistaActual, usuario, addToCart }) => {
                                             e.currentTarget.style.borderColor = `${color}33`;
                                         }}
                                     >
-                                        {/* Efecto de glow rotatorio en la tarjeta */}
                                         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
                                             style={{
                                                 background: `conic-gradient(from 0deg, transparent, ${color}18, transparent, ${color}18, transparent)`,
@@ -410,10 +401,10 @@ export const Catalogo = ({ setVistaActual, usuario, addToCart }) => {
                                             }}
                                         />
 
-                                        {/* Imagen */}
+                                        {/* Imagen - CORREGIDO: imagen_url */}
                                         <div className="h-48 w-full relative overflow-hidden">
                                             <img
-                                                src={producto.imagenUrl || defaultImage}
+                                                src={producto.imagen_url || defaultImage}
                                                 alt={producto.nombre}
                                                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                                 onError={(e) => {
@@ -453,7 +444,6 @@ export const Catalogo = ({ setVistaActual, usuario, addToCart }) => {
                                             />
                                         </div>
 
-                                        {/* Cuerpo */}
                                         <div className="p-5 flex-grow flex flex-col justify-between space-y-4 relative z-10">
                                             <div className="space-y-2">
                                                 {producto.proveedor && (
@@ -464,7 +454,7 @@ export const Catalogo = ({ setVistaActual, usuario, addToCart }) => {
                                                             letterSpacing: '0.5px'
                                                         }}
                                                     >
-                                                        {producto.proveedor.nombreEmpresa}
+                                                        {producto.proveedor.nombre}
                                                     </div>
                                                 )}
                                                 <h3 className="font-bold text-base line-clamp-1 transition-colors duration-300 group-hover:text-[#00f0ff]"
@@ -483,7 +473,6 @@ export const Catalogo = ({ setVistaActual, usuario, addToCart }) => {
                                                 </p>
                                             </div>
 
-                                            {/* Precio y Stock */}
                                             <div className="pt-2 border-t"
                                                 style={{ borderColor: `${color}22` }}
                                             >
@@ -508,7 +497,6 @@ export const Catalogo = ({ setVistaActual, usuario, addToCart }) => {
                                                     </span>
                                                 </div>
 
-                                                {/* Botón Comprar */}
                                                 <button
                                                     onClick={() => handleAddToCart(producto)}
                                                     disabled={isOutOfStock || !usuario}
