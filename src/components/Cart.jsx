@@ -24,6 +24,7 @@ export const Cart = ({
     const isAdmin = usuario && usuario.rol === 'ROLE_ADMIN';
 
     const handleCheckout = async () => {
+        // ✅ Validaciones
         if (!usuario) {
             setError('Debes iniciar sesión para comprar');
             return;
@@ -36,6 +37,17 @@ export const Cart = ({
             setError('Solo los clientes pueden realizar compras');
             return;
         }
+        if (cart.length === 0) {
+            setError('El carrito está vacío');
+            return;
+        }
+
+        // ✅ Verificar token
+        const token = localStorage.getItem('token');
+        if (!token) {
+            setError('Sesión expirada. Inicia sesión nuevamente.');
+            return;
+        }
 
         setLoading(true);
         setError('');
@@ -43,17 +55,21 @@ export const Cart = ({
         const ventaPayload = {
             detalles: cart.map(item => ({
                 producto: { id: item.producto.id },
-                cantidad: item.cantidad
+                cantidad: item.cantidad,
+                precioUnitario: item.producto.precio
             }))
         };
 
         try {
+            console.log('📦 Enviando venta:', ventaPayload);
             const ventaRegistrada = await apiService.procesarVenta(ventaPayload);
+            console.log('✅ Venta registrada:', ventaRegistrada);
             setVentaActiva(ventaRegistrada);
             clearCart();
             onClose();
             setVistaActual('checkout');
         } catch (err) {
+            console.error('❌ Error en checkout:', err);
             setError(err.message || 'Error al procesar la compra.');
         } finally {
             setLoading(false);
