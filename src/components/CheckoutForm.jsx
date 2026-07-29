@@ -111,7 +111,7 @@ const PaymentForm = ({ venta, onPaymentSuccess, setCurrentTab }) => {
             </>
           ) : (
             <>
-              <CreditCard className="w-5 h-5" /> Pagar Ahora (${venta.total.toFixed(2)} MXN)
+              <CreditCard className="w-5 h-5" /> Pagar Ahora (${venta.total?.toFixed(2) || '0.00'} MXN)
             </>
           )}
         </button>
@@ -154,7 +154,7 @@ const PaymentForm = ({ venta, onPaymentSuccess, setCurrentTab }) => {
   );
 };
 
-export const CheckoutForm = ({ ventaActiva, setCurrentTab }) => {
+export const CheckoutForm = ({ ventaActiva, setVistaActual }) => {
   const [pagado, setPagado] = useState(false);
 
   if (!ventaActiva) {
@@ -163,7 +163,7 @@ export const CheckoutForm = ({ ventaActiva, setCurrentTab }) => {
         <h3 className="font-bold text-lg text-gray-800">No hay ninguna venta activa</h3>
         <p className="text-gray-500 text-sm mt-1">Regresa al catálogo y añade productos para realizar el pago.</p>
         <button
-          onClick={() => setCurrentTab('catalog')}
+          onClick={() => setVistaActual('catalogo')}
           className="mt-4 bg-indigo-600 text-white px-6 py-2 rounded-xl text-sm font-bold cursor-pointer"
         >
           Ver Catálogo
@@ -185,19 +185,19 @@ export const CheckoutForm = ({ ventaActiva, setCurrentTab }) => {
           <p className="text-sm text-gray-500">Tu orden #{ventaActiva.id} ha sido procesada y pagada correctamente.</p>
         </div>
         <div className="bg-gray-50 p-4 rounded-xl text-left text-xs text-gray-600 border border-gray-100 space-y-1">
-          <div><span className="font-bold">Total Pagado:</span> ${ventaActiva.total.toFixed(2)} MXN</div>
+          <div><span className="font-bold">Total Pagado:</span> ${ventaActiva.total?.toFixed(2)} MXN</div>
           <div><span className="font-bold">Estado:</span> <span className="text-green-600 font-bold">PAGADO</span></div>
           <div><span className="font-bold">Cliente:</span> {ventaActiva.cliente?.nombre || 'Demo'}</div>
         </div>
         <div className="flex gap-3">
           <button
-            onClick={() => setCurrentTab('purchases')}
+            onClick={() => setVistaActual('perfil')}
             className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl text-sm font-bold shadow-sm transition-colors cursor-pointer"
           >
             Ver Mis Compras
           </button>
           <button
-            onClick={() => setCurrentTab('catalog')}
+            onClick={() => setVistaActual('catalogo')}
             className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 py-3 rounded-xl text-sm font-bold transition-colors cursor-pointer"
           >
             Seguir Comprando
@@ -237,7 +237,7 @@ export const CheckoutForm = ({ ventaActiva, setCurrentTab }) => {
           <PaymentForm 
             venta={ventaActiva} 
             onPaymentSuccess={handlePaymentSuccess} 
-            setCurrentTab={setCurrentTab} 
+            setCurrentTab={setVistaActual} 
           />
         </Elements>
       </div>
