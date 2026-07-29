@@ -28,6 +28,8 @@ const handleResponse = async (response) => {
 // Método principal de peticiones
 export const apiService = {
 
+    // ==================== AUTH ====================
+
     isAuthenticated: () => {
         return !!localStorage.getItem('token');
     },
@@ -39,8 +41,6 @@ export const apiService = {
     getUserName: () => {
         return localStorage.getItem('nombre') || localStorage.getItem('username');
     },
-
-    // ==================== AUTH ====================
 
     registro: async (userData) => {
         const response = await fetch(API_URL + 'auth/registro', {
@@ -112,12 +112,12 @@ export const apiService = {
         return await handleResponse(response);
     },
 
+    // ==================== CATEGORÍAS ====================
+
     getCategorias: async () => {
         const response = await fetch(API_URL + 'categorias', { headers: getHeaders() });
         return await handleResponse(response);
     },
-
-    // ==================== CATEGORÍAS (ADMIN) ====================
 
     crearCategoria: async (categoria) => {
         const response = await fetch(API_URL + 'categorias', {
@@ -139,44 +139,6 @@ export const apiService = {
 
     eliminarCategoria: async (id) => {
         const response = await fetch(`${API_URL}categorias/${id}`, {
-            method: 'DELETE',
-            headers: getHeaders()
-        });
-        return await handleResponse(response);
-    },
-
-    // ==================== CLIENTES ====================
-
-    getClientes: async () => {
-        const response = await fetch(API_URL + 'clientes', { headers: getHeaders() });
-        return await handleResponse(response);
-    },
-
-    getCliente: async (id) => {
-        const response = await fetch(API_URL + 'clientes/' + id, { headers: getHeaders() });
-        return await handleResponse(response);
-    },
-
-    crearCliente: async (cliente) => {
-        const response = await fetch(API_URL + 'clientes', {
-            method: 'POST',
-            body: JSON.stringify(cliente),
-            headers: getHeaders()
-        });
-        return await handleResponse(response);
-    },
-
-    actualizarCliente: async (id, cliente) => {
-        const response = await fetch(`${API_URL}clientes/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify(cliente),
-            headers: getHeaders()
-        });
-        return await handleResponse(response);
-    },
-
-    eliminarCliente: async (id) => {
-        const response = await fetch(`${API_URL}clientes/${id}`, {
             method: 'DELETE',
             headers: getHeaders()
         });
@@ -215,6 +177,44 @@ export const apiService = {
 
     eliminarProveedor: async (id) => {
         const response = await fetch(`${API_URL}proveedores/${id}`, {
+            method: 'DELETE',
+            headers: getHeaders()
+        });
+        return await handleResponse(response);
+    },
+
+    // ==================== CLIENTES ====================
+
+    getClientes: async () => {
+        const response = await fetch(API_URL + 'clientes', { headers: getHeaders() });
+        return await handleResponse(response);
+    },
+
+    getCliente: async (id) => {
+        const response = await fetch(API_URL + 'clientes/' + id, { headers: getHeaders() });
+        return await handleResponse(response);
+    },
+
+    crearCliente: async (cliente) => {
+        const response = await fetch(API_URL + 'clientes', {
+            method: 'POST',
+            body: JSON.stringify(cliente),
+            headers: getHeaders()
+        });
+        return await handleResponse(response);
+    },
+
+    actualizarCliente: async (id, cliente) => {
+        const response = await fetch(`${API_URL}clientes/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(cliente),
+            headers: getHeaders()
+        });
+        return await handleResponse(response);
+    },
+
+    eliminarCliente: async (id) => {
+        const response = await fetch(`${API_URL}clientes/${id}`, {
             method: 'DELETE',
             headers: getHeaders()
         });
@@ -269,6 +269,14 @@ export const apiService = {
     },
 
     procesarVenta: async (venta) => {
+        console.log('📦 Enviando venta a procesar:', venta);
+        const token = localStorage.getItem('token');
+        console.log('🔑 Token:', token);
+        
+        if (!token) {
+            throw new Error('No estás autenticado. Inicia sesión.');
+        }
+        
         const response = await fetch(API_URL + 'ventas/procesar', {
             method: 'POST',
             headers: getHeaders(),
@@ -291,7 +299,7 @@ export const apiService = {
         return await handleResponse(response);
     },
 
-    // ==================== PAGOS ====================
+    // ==================== PAGOS (STRIPE) ====================
 
     crearIntencionPago: async (idVenta) => {
         const response = await fetch(API_URL + 'pagos/crear-intencion', {
