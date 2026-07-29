@@ -17,7 +17,9 @@ function App() {
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [ventaActiva, setVentaActiva] = useState(null);
 
+    // ============ CARGAR DATOS GUARDADOS ============
     useEffect(() => {
+        // Cargar usuario
         if (apiService.isAuthenticated()) {
             setUser({
                 username: localStorage.getItem('username'),
@@ -25,7 +27,25 @@ function App() {
                 rol: localStorage.getItem('rol') 
             });
         }
+        
+        // Cargar carrito desde localStorage
+        const carritoGuardado = localStorage.getItem('carrito');
+        if (carritoGuardado) {
+            try {
+                const carrito = JSON.parse(carritoGuardado);
+                setCart(carrito);
+                console.log('🛒 Carrito cargado:', carrito.length, 'productos');
+            } catch (e) {
+                console.error('Error al cargar carrito:', e);
+            }
+        }
     }, []);
+
+    // Guardar carrito en localStorage cuando cambie
+    useEffect(() => {
+        localStorage.setItem('carrito', JSON.stringify(cart));
+        console.log('💾 Carrito guardado:', cart.length, 'productos');
+    }, [cart]);
 
     const handleLoginSuccess = (userData) => {
         setUser({
@@ -46,6 +66,7 @@ function App() {
         setCart([]);
         setVentaActiva(null);
         setVistaActual('catalogo');
+        localStorage.removeItem('carrito');
     };
 
     // ============ CARRITO ============
