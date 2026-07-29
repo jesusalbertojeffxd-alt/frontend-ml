@@ -52,6 +52,7 @@ export const Cart = ({
         setLoading(true);
         setError('');
 
+        // ✅ Estructura correcta para el backend
         const ventaPayload = {
             detalles: cart.map(item => ({
                 producto: { id: item.producto.id },
@@ -62,7 +63,7 @@ export const Cart = ({
 
         try {
             console.log('📦 Enviando venta:', ventaPayload);
-            const ventaRegistrada = await apiService.procesarVenta(ventaPayload);
+            const ventaRegistrada = await apiService.crearVenta(ventaPayload);
             console.log('✅ Venta registrada:', ventaRegistrada);
             setVentaActiva(ventaRegistrada);
             clearCart();
@@ -196,9 +197,9 @@ export const Cart = ({
                                         <Loader2 className="w-5 h-5 animate-spin" /> Procesando Compra...
                                     </>
                                 ) : isAdmin ? (
-                                    ' Administradores no pueden comprar'
+                                    '❌ Administradores no pueden comprar'
                                 ) : !usuario ? (
-                                    ' Inicia sesión para comprar'
+                                    '🔒 Inicia sesión para comprar'
                                 ) : (
                                     <>
                                         <CreditCard className="w-5 h-5" /> Proceder al Pago
