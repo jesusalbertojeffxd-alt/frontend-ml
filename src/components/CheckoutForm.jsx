@@ -4,8 +4,10 @@ import { Elements, CardElement, useStripe, useElements } from '@stripe/react-str
 import { apiService } from '../services/apiService';
 import { CreditCard, CheckCircle2, ShieldAlert, Loader2, Play } from 'lucide-react';
 
-// Clave pública de prueba de Stripe. Puede ser reemplazada por una clave real 'pk_test_...'
-const stripePromise = loadStripe('');
+// ============================================
+// STRIPE - CLAVE PÚBLICA (CORREGIDA)
+// ============================================
+const stripePromise = loadStripe('pk_test_51TwjwsRsZ7u2wAfkh90gKfDulpZO5M7at5BDph8dKueYm3OTUriJS6d7vn0JkLlYAY9IS0DMSBxK23k823YnNnSp00FNPRdmuW');
 
 const PaymentForm = ({ venta, onPaymentSuccess, setCurrentTab }) => {
   const stripe = useStripe();
@@ -17,7 +19,6 @@ const PaymentForm = ({ venta, onPaymentSuccess, setCurrentTab }) => {
   const [simulating, setSimulating] = useState(false);
 
   useEffect(() => {
-    // 1. Obtener el clientSecret del backend
     const getSecret = async () => {
       try {
         const res = await apiService.crearIntencionPago(venta.id);
@@ -25,7 +26,6 @@ const PaymentForm = ({ venta, onPaymentSuccess, setCurrentTab }) => {
           setClientSecret(res.clientSecret);
         }
       } catch (err) {
-        // Ignoramos el error en interfaz porque proveemos el simulador de respaldo
         console.warn('No se pudo inicializar Stripe. Se usará el simulador de pago.', err);
       }
     };
@@ -45,7 +45,6 @@ const PaymentForm = ({ venta, onPaymentSuccess, setCurrentTab }) => {
     setError('');
 
     try {
-      // 2. Confirmar pago en Stripe
       const result = await stripe.confirmCardPayment(clientSecret, {
         payment_method: {
           card: elements.getElement(CardElement),
@@ -56,7 +55,6 @@ const PaymentForm = ({ venta, onPaymentSuccess, setCurrentTab }) => {
         setError(result.error.message);
         setProcesando(false);
       } else if (result.paymentIntent.status === 'succeeded') {
-        // 3. Confirmar pago en nuestro Backend
         await apiService.confirmarPagoVenta(venta.id);
         onPaymentSuccess();
       }
@@ -66,7 +64,6 @@ const PaymentForm = ({ venta, onPaymentSuccess, setCurrentTab }) => {
     }
   };
 
-  // Simulador de pago para pruebas rápidas o si no hay conexión/claves reales
   const handleSimulatePayment = async () => {
     setSimulating(true);
     setError('');
@@ -89,7 +86,6 @@ const PaymentForm = ({ venta, onPaymentSuccess, setCurrentTab }) => {
         </div>
       )}
 
-      {/* Formulario Stripe */}
       <form onSubmit={handleSubmit} className="bg-gray-50 p-5 rounded-2xl border border-gray-200 space-y-4">
         <label className="block text-sm font-semibold text-gray-700">Tarjeta de Crédito o Débito</label>
         <div className="bg-white p-4 rounded-xl border border-gray-300">
@@ -121,13 +117,11 @@ const PaymentForm = ({ venta, onPaymentSuccess, setCurrentTab }) => {
         </button>
       </form>
 
-      {/* Separador */}
       <div className="relative flex items-center justify-center">
         <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"></div></div>
         <span className="relative bg-white px-4 text-xs font-bold text-gray-400 uppercase tracking-widest">O de Respaldo</span>
       </div>
 
-      {/* Simulador */}
       <div className="bg-amber-50 rounded-2xl p-5 border border-amber-200 space-y-3">
         <div className="flex items-start gap-2.5">
           <ShieldAlert className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
@@ -221,11 +215,10 @@ export const CheckoutForm = ({ ventaActiva, setCurrentTab }) => {
       </div>
 
       <div className="p-6 space-y-6">
-        {/* Resumen Venta */}
         <div className="space-y-3">
           <h3 className="font-bold text-gray-800 text-sm uppercase tracking-wider">Resumen del Pedido</h3>
           <div className="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 text-sm space-y-2">
-            {ventaActiva.detalles.map((det, idx) => (
+            {ventaActiva.detalles?.map((det, idx) => (
               <div key={idx} className="flex justify-between text-gray-700 text-xs">
                 <span>
                   {det.producto?.nombre || `Producto #${det.producto?.id}`} (x{det.cantidad})
@@ -235,12 +228,11 @@ export const CheckoutForm = ({ ventaActiva, setCurrentTab }) => {
             ))}
             <div className="border-t border-indigo-200 pt-2 flex justify-between font-extrabold text-indigo-950 text-sm">
               <span>Total a Cobrar</span>
-              <span>${ventaActiva.total.toFixed(2)} MXN</span>
+              <span>${ventaActiva.total?.toFixed(2)} MXN</span>
             </div>
           </div>
         </div>
 
-        {/* Formulario Stripe Provider */}
         <Elements stripe={stripePromise}>
           <PaymentForm 
             venta={ventaActiva} 
@@ -250,4 +242,5 @@ export const CheckoutForm = ({ ventaActiva, setCurrentTab }) => {
         </Elements>
       </div>
     </div>
-  )};
+  );
+};
