@@ -10,7 +10,8 @@ export const Cart = ({
     removeFromCart, 
     clearCart,
     setVistaActual, 
-    setVentaActiva 
+    setVentaActiva,
+    usuario
 }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -19,7 +20,23 @@ export const Cart = ({
 
     const total = cart.reduce((sum, item) => sum + item.producto.precio * item.cantidad, 0);
 
+    const isClient = usuario && usuario.rol === 'ROLE_CLIENTE';
+    const isAdmin = usuario && usuario.rol === 'ROLE_ADMIN';
+
     const handleCheckout = async () => {
+        if (!usuario) {
+            setError('Debes iniciar sesión para comprar');
+            return;
+        }
+        if (isAdmin) {
+            setError('Los administradores no pueden realizar compras');
+            return;
+        }
+        if (!isClient) {
+            setError('Solo los clientes pueden realizar compras');
+            return;
+        }
+
         setLoading(true);
         setError('');
 
@@ -45,7 +62,6 @@ export const Cart = ({
 
     return (
         <div className="fixed inset-0 z-50 overflow-hidden">
-            {/* Fondo Traslúcido */}
             <div 
                 className="absolute inset-0 bg-indigo-950/45 backdrop-blur-sm transition-opacity" 
                 onClick={onClose} 
@@ -98,7 +114,6 @@ export const Cart = ({
                                             <p className="text-xs text-gray-400 font-semibold">{item.producto.categoria?.nombre}</p>
                                             
                                             <div className="flex items-center justify-between mt-2">
-                                                {/* Controles de Cantidad */}
                                                 <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden bg-white">
                                                     <button 
                                                         onClick={() => updateQuantity(item.producto.id, item.cantidad - 1)}
@@ -114,15 +129,12 @@ export const Cart = ({
                                                         <Plus className="w-3.5 h-3.5" />
                                                     </button>
                                                 </div>
-
-                                                {/* Subtotal del Item */}
                                                 <span className="font-bold text-sm text-indigo-950">
                                                     ${(item.producto.precio * item.cantidad).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                                                 </span>
                                             </div>
                                         </div>
 
-                                        {/* Botón Eliminar */}
                                         <button 
                                             onClick={() => removeFromCart(item.producto.id)}
                                             className="absolute top-2 right-2 p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-600 transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
@@ -154,22 +166,35 @@ export const Cart = ({
                                 </div>
                             </div>
 
-                            {/* Botón de Pago */}
                             <button
                                 onClick={handleCheckout}
-                                disabled={loading}
-                                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white p-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 cursor-pointer"
+                                disabled={loading || !isClient || isAdmin}
+                                className={`w-full p-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-md transition-all duration-200 cursor-pointer ${
+                                    isClient && !isAdmin
+                                        ? 'bg-indigo-600 hover:bg-indigo-700 text-white hover:shadow-lg'
+                                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                }`}
                             >
                                 {loading ? (
                                     <>
                                         <Loader2 className="w-5 h-5 animate-spin" /> Procesando Compra...
                                     </>
+                                ) : isAdmin ? (
+                                    ' Administradores no pueden comprar'
+                                ) : !usuario ? (
+                                    ' Inicia sesión para comprar'
                                 ) : (
                                     <>
                                         <CreditCard className="w-5 h-5" /> Proceder al Pago
                                     </>
                                 )}
                             </button>
+
+                            {isAdmin && cart.length > 0 && (
+                                <p className="text-xs text-center text-red-500 font-semibold">
+                                    Los administradores solo pueden gestionar productos, no comprar.
+                                </p>
+                            )}
                         </div>
                     )}
                 </div>
