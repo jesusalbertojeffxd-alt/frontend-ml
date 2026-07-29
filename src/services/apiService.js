@@ -1,34 +1,31 @@
-// ============================================
-// CONFIGURACIÓN DE LA API - COOLIFY
-// ============================================
 const API_URL = "http://epqy26ctakwdqnuavcsjlb33.168.231.67.126.sslip.io:8081/api/v1/";
 
-// Método helper para obtener las cabeceras con JWT
 const getHeaders = () => {
     const token = localStorage.getItem('token');
     const headers = {
         'Content-Type': 'application/json',
     };
     if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+        headers['Authorization'] = 'Bearer ' + token;
+        console.log('Token incluido en la peticion');
+    } else {
+        console.warn('Sin token JWT');
     }
     return headers;
 };
 
-// Método para manejo de errores de la API
 const handleResponse = async (response) => {
+    console.log('Respuesta HTTP:', response.status, response.statusText);
     if (!response.ok) {
         const errorText = await response.text();
+        console.error('Error en la respuesta:', errorText);
         throw new Error(errorText || 'Error en la red');
     }
     if (response.status === 204) return null;
     return await response.json();
 };
 
-// Método principal de peticiones
 export const apiService = {
-
-    // ==================== AUTH ====================
 
     isAuthenticated: () => {
         return !!localStorage.getItem('token');
@@ -52,6 +49,7 @@ export const apiService = {
     },
 
     login: async (username, password) => {
+        console.log('Intentando login para:', username);
         const response = await fetch(API_URL + 'auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -59,10 +57,13 @@ export const apiService = {
         });
         const data = await handleResponse(response);
         if (data.token) {
+            console.log('Login exitoso, token recibido');
             localStorage.setItem('token', data.token);
             localStorage.setItem('username', data.username);
             localStorage.setItem('nombre', data.nombre);
             localStorage.setItem('rol', data.rol);
+        } else {
+            console.error('Login fallido:', data);
         }
         return data;
     },
@@ -72,9 +73,8 @@ export const apiService = {
         localStorage.removeItem('username');
         localStorage.removeItem('nombre');
         localStorage.removeItem('rol');
+        console.log('Sesion cerrada');
     },
-
-    // ==================== PRODUCTOS ====================
 
     getProductos: async () => {
         const response = await fetch(API_URL + 'productos', { headers: getHeaders() });
@@ -96,7 +96,7 @@ export const apiService = {
     },
 
     actualizarProducto: async (id, producto) => {
-        const response = await fetch(`${API_URL}productos/${id}`, {
+        const response = await fetch(API_URL + 'productos/' + id, {
             method: 'PUT',
             body: JSON.stringify(producto),
             headers: getHeaders()
@@ -105,14 +105,12 @@ export const apiService = {
     },
 
     eliminarProducto: async (id) => {
-        const response = await fetch(`${API_URL}productos/${id}`, {
+        const response = await fetch(API_URL + 'productos/' + id, {
             method: 'DELETE',
             headers: getHeaders()
         });
         return await handleResponse(response);
     },
-
-    // ==================== CATEGORÍAS ====================
 
     getCategorias: async () => {
         const response = await fetch(API_URL + 'categorias', { headers: getHeaders() });
@@ -129,7 +127,7 @@ export const apiService = {
     },
 
     actualizarCategoria: async (id, categoria) => {
-        const response = await fetch(`${API_URL}categorias/${id}`, {
+        const response = await fetch(API_URL + 'categorias/' + id, {
             method: 'PUT',
             body: JSON.stringify(categoria),
             headers: getHeaders()
@@ -138,14 +136,12 @@ export const apiService = {
     },
 
     eliminarCategoria: async (id) => {
-        const response = await fetch(`${API_URL}categorias/${id}`, {
+        const response = await fetch(API_URL + 'categorias/' + id, {
             method: 'DELETE',
             headers: getHeaders()
         });
         return await handleResponse(response);
     },
-
-    // ==================== PROVEEDORES ====================
 
     getProveedores: async () => {
         const response = await fetch(API_URL + 'proveedores', { headers: getHeaders() });
@@ -167,7 +163,7 @@ export const apiService = {
     },
 
     actualizarProveedor: async (id, proveedor) => {
-        const response = await fetch(`${API_URL}proveedores/${id}`, {
+        const response = await fetch(API_URL + 'proveedores/' + id, {
             method: 'PUT',
             body: JSON.stringify(proveedor),
             headers: getHeaders()
@@ -176,14 +172,12 @@ export const apiService = {
     },
 
     eliminarProveedor: async (id) => {
-        const response = await fetch(`${API_URL}proveedores/${id}`, {
+        const response = await fetch(API_URL + 'proveedores/' + id, {
             method: 'DELETE',
             headers: getHeaders()
         });
         return await handleResponse(response);
     },
-
-    // ==================== CLIENTES ====================
 
     getClientes: async () => {
         const response = await fetch(API_URL + 'clientes', { headers: getHeaders() });
@@ -205,7 +199,7 @@ export const apiService = {
     },
 
     actualizarCliente: async (id, cliente) => {
-        const response = await fetch(`${API_URL}clientes/${id}`, {
+        const response = await fetch(API_URL + 'clientes/' + id, {
             method: 'PUT',
             body: JSON.stringify(cliente),
             headers: getHeaders()
@@ -214,21 +208,23 @@ export const apiService = {
     },
 
     eliminarCliente: async (id) => {
-        const response = await fetch(`${API_URL}clientes/${id}`, {
+        const response = await fetch(API_URL + 'clientes/' + id, {
             method: 'DELETE',
             headers: getHeaders()
         });
         return await handleResponse(response);
     },
 
-    // ==================== VENTAS ====================
-
-    // ✅ Crear venta directamente (usado por el carrito)
     crearVenta: async (venta) => {
         const token = localStorage.getItem('token');
         if (!token) {
-            throw new Error('No estás autenticado. Inicia sesión.');
+            console.error('No hay token JWT');
+            throw new Error('No estas autenticado. Inicia sesion.');
         }
+        console.log('Enviando venta a:', API_URL + 'ventas');
+        console.log('Headers:', getHeaders());
+        console.log('Body:', venta);
+        
         const response = await fetch(API_URL + 'ventas', {
             method: 'POST',
             headers: getHeaders(),
@@ -237,9 +233,8 @@ export const apiService = {
         return await handleResponse(response);
     },
 
-    // ✅ procesarVenta usa crearVenta
     procesarVenta: async (venta) => {
-        console.log('📦 Procesando venta:', venta);
+        console.log('Procesando venta:', venta);
         return await apiService.crearVenta(venta);
     },
 
@@ -254,7 +249,7 @@ export const apiService = {
     },
 
     actualizarVenta: async (id, venta) => {
-        const response = await fetch(`${API_URL}ventas/${id}`, {
+        const response = await fetch(API_URL + 'ventas/' + id, {
             method: 'PUT',
             body: JSON.stringify(venta),
             headers: getHeaders()
@@ -263,7 +258,7 @@ export const apiService = {
     },
 
     eliminarVenta: async (id) => {
-        const response = await fetch(`${API_URL}ventas/${id}`, {
+        const response = await fetch(API_URL + 'ventas/' + id, {
             method: 'DELETE',
             headers: getHeaders()
         });
@@ -271,7 +266,7 @@ export const apiService = {
     },
 
     actualizarEstadoPago: async (idVenta, estadoPago) => {
-        const response = await fetch(`${API_URL}ventas/${idVenta}`, {
+        const response = await fetch(API_URL + 'ventas/' + idVenta, {
             method: 'PUT',
             body: JSON.stringify({ estadoPago }),
             headers: getHeaders()
@@ -293,8 +288,6 @@ export const apiService = {
         return await handleResponse(response);
     },
 
-    // ==================== PAGOS (STRIPE) ====================
-
     crearIntencionPago: async (idVenta) => {
         const response = await fetch(API_URL + 'pagos/crear-intencion', {
             method: 'POST',
@@ -305,7 +298,7 @@ export const apiService = {
     },
 
     confirmarPagoVenta: async (idVenta) => {
-        const response = await fetch(API_URL + "pagos/confirmar-pago/" + idVenta, {
+        const response = await fetch(API_URL + 'pagos/confirmar-pago/' + idVenta, {
             method: 'POST',
             headers: getHeaders(),
         });
