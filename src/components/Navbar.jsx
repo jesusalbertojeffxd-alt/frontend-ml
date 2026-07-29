@@ -1,10 +1,10 @@
 import React from 'react';
 import { apiService } from '../services/apiService';
-import { ShoppingCart, LogOut, User, LayoutDashboard, Database, ListOrdered, ShoppingBag } from 'lucide-react';
+import { ShoppingCart, LogOut, User, LayoutDashboard, ListOrdered, ShoppingBag, UserCircle } from 'lucide-react';
 
-export const Navbar = ({ VistaActual, setVistaActual, user, onLogout, carCount, openCart }) => {
+export const Navbar = ({ vistaActual, setVistaActual, user, onLogout, carCount, openCart }) => {
     const handleLogout = () => {
-        apiService.Logout();  // ✅ CORREGIDO: L mayúscula
+        apiService.logout();
         onLogout();
         setVistaActual('catalogo');
     }
@@ -57,88 +57,88 @@ export const Navbar = ({ VistaActual, setVistaActual, user, onLogout, carCount, 
                         <button 
                             onClick={() => setVistaActual('catalogo')}
                             className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 hover:scale-105
-                            ${VistaActual === 'catalogo' ? 'font-bold border-b-2' : ''}`}
+                            ${vistaActual === 'catalogo' ? 'font-bold border-b-2' : ''}`}
                             style={{
                                 fontFamily: "'Rajdhani', sans-serif",
                                 letterSpacing: '1px',
                                 textTransform: 'uppercase',
-                                color: VistaActual === 'catalogo' ? '#00f0ff' : '#c8c8e8',
+                                color: vistaActual === 'catalogo' ? '#00f0ff' : '#c8c8e8',
                                 borderColor: '#00f0ff',
-                                background: VistaActual === 'catalogo' ? 'rgba(0, 240, 255, 0.08)' : 'transparent',
-                                boxShadow: VistaActual === 'catalogo' ? '0 0 30px rgba(0, 240, 255, 0.05)' : 'none'
+                                background: vistaActual === 'catalogo' ? 'rgba(0, 240, 255, 0.08)' : 'transparent',
+                                boxShadow: vistaActual === 'catalogo' ? '0 0 30px rgba(0, 240, 255, 0.05)' : 'none'
                             }}
                             onMouseEnter={(e) => {
-                                if (VistaActual !== 'catalogo') {
+                                if (vistaActual !== 'catalogo') {
                                     e.target.style.color = '#00f0ff';
                                     e.target.style.textShadow = '0 0 20px rgba(0, 240, 255, 0.2)';
                                 }
                             }}
                             onMouseLeave={(e) => {
-                                if (VistaActual !== 'catalogo') {
+                                if (vistaActual !== 'catalogo') {
                                     e.target.style.color = '#c8c8e8';
                                     e.target.style.textShadow = 'none';
                                 }
                             }}
                         >
-                            Catalogo
+                            Catálogo
                         </button>
 
-                        {/* Mis Compras (Cliente) */}
+                        {/* Mis Compras (Solo Cliente) */}
                         {isClient && (
                             <button 
-                                onClick={() => setVistaActual('misCompras')}
+                                onClick={() => setVistaActual('perfil')}
                                 className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 hover:scale-105
-                                ${VistaActual === 'misCompras' ? 'font-bold border-b-2' : ''}`}
+                                ${vistaActual === 'perfil' ? 'font-bold border-b-2' : ''}`}
                                 style={{
                                     fontFamily: "'Rajdhani', sans-serif",
                                     letterSpacing: '1px',
                                     textTransform: 'uppercase',
-                                    color: VistaActual === 'misCompras' ? '#ff00c8' : '#c8c8e8',
+                                    color: vistaActual === 'perfil' ? '#ff00c8' : '#c8c8e8',
                                     borderColor: '#ff00c8',
-                                    background: VistaActual === 'misCompras' ? 'rgba(255, 0, 200, 0.08)' : 'transparent',
-                                    boxShadow: VistaActual === 'misCompras' ? '0 0 30px rgba(255, 0, 200, 0.05)' : 'none'
+                                    background: vistaActual === 'perfil' ? 'rgba(255, 0, 200, 0.08)' : 'transparent',
+                                    boxShadow: vistaActual === 'perfil' ? '0 0 30px rgba(255, 0, 200, 0.05)' : 'none'
                                 }}
                                 onMouseEnter={(e) => {
-                                    if (VistaActual !== 'misCompras') {
+                                    if (vistaActual !== 'perfil') {
                                         e.target.style.color = '#ff00c8';
                                         e.target.style.textShadow = '0 0 20px rgba(255, 0, 200, 0.2)';
                                     }
                                 }}
                                 onMouseLeave={(e) => {
-                                    if (VistaActual !== 'misCompras') {
+                                    if (vistaActual !== 'perfil') {
                                         e.target.style.color = '#c8c8e8';
                                         e.target.style.textShadow = 'none';
                                     }
                                 }}
                             >
-                                <ListOrdered className="w-4 h-4 inline mr-1" />
-                                Mis Compras
+                                <UserCircle className="w-4 h-4 inline mr-1" />
+                                Mi Perfil
                             </button>
                         )}
 
-                        {/* Admin Panel */}
+                        {/* Admin Panel (Solo Admin) */}
                         {isAdmin && (
                             <button 
                                 onClick={() => setVistaActual('admin-panel')}
                                 className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 hover:scale-105
-                                ${VistaActual === 'admin-panel' ? 'font-bold border-b-2' : ''}`}
+                                ${vistaActual === 'admin-panel' ? 'font-bold border-b-2' : ''}`}
                                 style={{
                                     fontFamily: "'Rajdhani', sans-serif",
                                     letterSpacing: '1px',
                                     textTransform: 'uppercase',
-                                    color: VistaActual === 'admin-panel' ? '#b400ff' : '#c8c8e8',
+                                    color: vistaActual === 'admin-panel' ? '#b400ff' : '#c8c8e8',
                                     borderColor: '#b400ff',
-                                    background: VistaActual === 'admin-panel' ? 'rgba(180, 0, 255, 0.08)' : 'transparent',
-                                    boxShadow: VistaActual === 'admin-panel' ? '0 0 30px rgba(180, 0, 255, 0.05)' : 'none'
+                                    background: vistaActual === 'admin-panel' ? 'rgba(180, 0, 255, 0.08)' : 'transparent',
+                                    boxShadow: vistaActual === 'admin-panel' ? '0 0 30px rgba(180, 0, 255, 0.05)' : 'none'
                                 }}
                                 onMouseEnter={(e) => {
-                                    if (VistaActual !== 'admin-panel') {
+                                    if (vistaActual !== 'admin-panel') {
                                         e.target.style.color = '#b400ff';
                                         e.target.style.textShadow = '0 0 20px rgba(180, 0, 255, 0.2)';
                                     }
                                 }}
                                 onMouseLeave={(e) => {
-                                    if (VistaActual !== 'admin-panel') {
+                                    if (vistaActual !== 'admin-panel') {
                                         e.target.style.color = '#c8c8e8';
                                         e.target.style.textShadow = 'none';
                                     }
@@ -170,7 +170,7 @@ export const Navbar = ({ VistaActual, setVistaActual, user, onLogout, carCount, 
                                     </span>
                                 </div>
 
-                                {/* Carrito (Cliente) */}
+                                {/* Carrito (Solo Cliente) */}
                                 {isClient && (
                                     <button 
                                         onClick={openCart}
@@ -227,7 +227,7 @@ export const Navbar = ({ VistaActual, setVistaActual, user, onLogout, carCount, 
                                         e.target.style.borderColor = 'rgba(255, 0, 0, 0.08)';
                                         e.target.style.background = 'rgba(255, 0, 0, 0.03)';
                                     }}
-                                    title="Cerrar Sesion"
+                                    title="Cerrar Sesión"
                                 >
                                     <LogOut className="w-5 h-5 transition-all duration-300 hover:scale-110 hover:rotate-12"
                                         style={{
@@ -262,7 +262,7 @@ export const Navbar = ({ VistaActual, setVistaActual, user, onLogout, carCount, 
                                         e.target.style.color = '#c8c8e8';
                                     }}
                                 >
-                                    Iniciar Sesion
+                                    Iniciar Sesión
                                 </button>
                                 <button 
                                     onClick={() => setVistaActual('register')}
