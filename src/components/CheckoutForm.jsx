@@ -4,9 +4,7 @@ import { Elements, CardElement, useStripe, useElements } from '@stripe/react-str
 import { apiService } from '../services/apiService';
 import { CreditCard, CheckCircle2, ShieldAlert, Loader2, Play } from 'lucide-react';
 
-// ============================================
-// STRIPE - CLAVE PÚBLICA (CORREGIDA)
-// ============================================
+// ✅ Clave pública de Stripe
 const stripePromise = loadStripe('pk_test_51TwjwsRsZ7u2wAfkh90gKfDulpZO5M7at5BDph8dKueYm3OTUriJS6d7vn0JkLlYAY9IS0DMSBxK23k823YnNnSp00FNPRdmuW');
 
 const PaymentForm = ({ venta, onPaymentSuccess, setCurrentTab }) => {
@@ -37,7 +35,7 @@ const PaymentForm = ({ venta, onPaymentSuccess, setCurrentTab }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!stripe || !elements || !clientSecret) {
-      setError('Stripe no está inicializado o la clave es incorrecta. Usa el Simulador de Pago abajo.');
+      setError('Stripe no está inicializado. Usa el Simulador de Pago.');
       return;
     }
 
@@ -64,14 +62,16 @@ const PaymentForm = ({ venta, onPaymentSuccess, setCurrentTab }) => {
     }
   };
 
+  // ✅ SIMULADOR DE PAGO
   const handleSimulatePayment = async () => {
     setSimulating(true);
     setError('');
     try {
+      console.log('🎮 Simulando pago para venta:', venta.id);
       await apiService.confirmarPagoVenta(venta.id);
       onPaymentSuccess();
     } catch (err) {
-      setError('Error al conectar con la API local para simular el pago.');
+      setError('Error al confirmar el pago: ' + err.message);
     } finally {
       setSimulating(false);
     }
@@ -122,13 +122,14 @@ const PaymentForm = ({ venta, onPaymentSuccess, setCurrentTab }) => {
         <span className="relative bg-white px-4 text-xs font-bold text-gray-400 uppercase tracking-widest">O de Respaldo</span>
       </div>
 
+      {/* ✅ SIMULADOR DE PAGO */}
       <div className="bg-amber-50 rounded-2xl p-5 border border-amber-200 space-y-3">
         <div className="flex items-start gap-2.5">
           <ShieldAlert className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
           <div>
             <h4 className="text-sm font-bold text-amber-800">Simulador de Pago de Pruebas</h4>
             <p className="text-xs text-amber-700 mt-0.5">
-              Si estás usando las claves de Stripe por defecto o si no tienes internet, puedes simular una transacción exitosa para actualizar la base de datos.
+              Simula una transacción exitosa para probar el flujo completo sin usar Stripe.
             </p>
           </div>
         </div>
@@ -145,7 +146,7 @@ const PaymentForm = ({ venta, onPaymentSuccess, setCurrentTab }) => {
             </>
           ) : (
             <>
-              <Play className="w-4 h-4" /> Simular Pago Exitoso (Recomendado para Pruebas)
+              <Play className="w-4 h-4" /> Simular Pago Exitoso
             </>
           )}
         </button>
