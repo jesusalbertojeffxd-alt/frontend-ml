@@ -234,10 +234,29 @@ export const apiService = {
     },
 
     crearVenta: async (venta) => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            throw new Error('No estás autenticado. Inicia sesión.');
+        }
         const response = await fetch(API_URL + 'ventas', {
             method: 'POST',
             body: JSON.stringify(venta),
             headers: getHeaders()
+        });
+        return await handleResponse(response);
+    },
+
+    // ✅ CORREGIDO: Usa /ventas en lugar de /ventas/procesar
+    procesarVenta: async (venta) => {
+        console.log('📦 Procesando venta:', venta);
+        const token = localStorage.getItem('token');
+        if (!token) {
+            throw new Error('No estás autenticado. Inicia sesión.');
+        }
+        const response = await fetch(API_URL + 'ventas', {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify(venta)
         });
         return await handleResponse(response);
     },
@@ -264,23 +283,6 @@ export const apiService = {
             method: 'PUT',
             body: JSON.stringify({ estadoPago }),
             headers: getHeaders()
-        });
-        return await handleResponse(response);
-    },
-
-    procesarVenta: async (venta) => {
-        console.log('📦 Enviando venta a procesar:', venta);
-        const token = localStorage.getItem('token');
-        console.log('🔑 Token:', token);
-        
-        if (!token) {
-            throw new Error('No estás autenticado. Inicia sesión.');
-        }
-        
-        const response = await fetch(API_URL + 'ventas/procesar', {
-            method: 'POST',
-            headers: getHeaders(),
-            body: JSON.stringify(venta)
         });
         return await handleResponse(response);
     },
