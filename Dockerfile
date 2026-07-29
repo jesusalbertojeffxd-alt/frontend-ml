@@ -1,16 +1,21 @@
-FROM node:20-alpine AS builder
+FROM eclipse-temurin:21-jdk-alpine AS builder
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm install
-COPY . .
-RUN npm run build
+COPY mvnw .
+COPY .mvn .mvn
+COPY pom.xml .
 
-FROM nginx:alpine
-COPY --from=builder /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+RUN chmod +x ./mvnw
+RUN ./mvnw dependency:go-offline
 
-# ✅ PUERTO CORRECTO PARA FRONTEND (no 8081)
-EXPOSE 5173
+COPY src src
+RUN ./mvnw clean package -DskipTests
 
-CMD ["nginx", "-g", "daemon off;"]
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+
+COPY --from=builder /app/target/*.jar app.jar
+
+EXPOSE 8081
+
+ENTRYPOINT [ "java", "-jar", "app.jar" ]
