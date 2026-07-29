@@ -1,6 +1,6 @@
 import React from 'react';
 import { apiService } from '../services/apiService';
-import { ShoppingCart, LogOut, User, LayoutDashboard, ListOrdered, ShoppingBag, UserCircle } from 'lucide-react';
+import { ShoppingCart, LogOut, User, LayoutDashboard, ShoppingBag, UserCircle } from 'lucide-react';
 
 export const Navbar = ({ vistaActual, setVistaActual, user, onLogout, carCount, openCart }) => {
     const handleLogout = () => {
@@ -83,7 +83,7 @@ export const Navbar = ({ vistaActual, setVistaActual, user, onLogout, carCount, 
                             Catálogo
                         </button>
 
-                        {/* Mis Compras (Solo Cliente) */}
+                        {/* Mi Perfil (Solo Cliente) */}
                         {isClient && (
                             <button 
                                 onClick={() => setVistaActual('perfil')}
