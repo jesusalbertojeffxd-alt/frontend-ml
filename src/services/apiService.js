@@ -223,32 +223,8 @@ export const apiService = {
 
     // ==================== VENTAS ====================
 
-    getVentas: async () => {
-        const response = await fetch(API_URL + 'ventas', { headers: getHeaders() });
-        return await handleResponse(response);
-    },
-
-    getVenta: async (id) => {
-        const response = await fetch(API_URL + 'ventas/' + id, { headers: getHeaders() });
-        return await handleResponse(response);
-    },
-
+    // ✅ Crear venta directamente (usado por el carrito)
     crearVenta: async (venta) => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            throw new Error('No estás autenticado. Inicia sesión.');
-        }
-        const response = await fetch(API_URL + 'ventas', {
-            method: 'POST',
-            body: JSON.stringify(venta),
-            headers: getHeaders()
-        });
-        return await handleResponse(response);
-    },
-
-    // ✅ CORREGIDO: Usa /ventas en lugar de /ventas/procesar
-    procesarVenta: async (venta) => {
-        console.log('📦 Procesando venta:', venta);
         const token = localStorage.getItem('token');
         if (!token) {
             throw new Error('No estás autenticado. Inicia sesión.');
@@ -258,6 +234,22 @@ export const apiService = {
             headers: getHeaders(),
             body: JSON.stringify(venta)
         });
+        return await handleResponse(response);
+    },
+
+    // ✅ procesarVenta usa crearVenta
+    procesarVenta: async (venta) => {
+        console.log('📦 Procesando venta:', venta);
+        return await apiService.crearVenta(venta);
+    },
+
+    getVentas: async () => {
+        const response = await fetch(API_URL + 'ventas', { headers: getHeaders() });
+        return await handleResponse(response);
+    },
+
+    getVenta: async (id) => {
+        const response = await fetch(API_URL + 'ventas/' + id, { headers: getHeaders() });
         return await handleResponse(response);
     },
 
