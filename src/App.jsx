@@ -6,7 +6,9 @@ import { Login } from './components/Login';
 import { apiService } from './services/apiService';
 import { Navbar } from './components/Navbar';
 import { AdminDashboard } from './components/AdminDashboard';
-import {Cart} from './components/Cart';
+import { Cart } from './components/Cart';
+import { Perfil } from './components/Perfil';
+import { CheckoutForm } from './components/CheckoutForm';
 
 function App() {
     const [vistaActual, setVistaActual] = useState('catalogo');
@@ -14,7 +16,6 @@ function App() {
     const [cart, setCart] = useState([]);
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [ventaActiva, setVentaActiva] = useState(null);
-    const [adminSubTab, setAdminSubTab] = useState('productos');
 
     useEffect(() => {
         if (apiService.isAuthenticated()) {
@@ -32,22 +33,32 @@ function App() {
             nombre: userData.nombre,
             rol: userData.rol
         });
-        if (userData.rol === 'ROLE_ADMIN') { // Cambiado de userData.role a userData.rol
-            setVistaActual('admin-dashboard');
+        if (userData.rol === 'ROLE_ADMIN') {
+            setVistaActual('admin-panel');
         } else {
             setVistaActual('catalogo');
         }
     };
 
     const handleLogout = () => {
+        apiService.logout();
         setUser(null);
         setCart([]);
         setVentaActiva(null);
         setVistaActual('catalogo');
     };
 
-    // Función de carrito de compras - CORREGIDA
+    // ============ CARRITO ============
     const addToCart = (producto) => {
+        if (!user) {
+            alert('Debes iniciar sesión para comprar');
+            setVistaActual('login');
+            return;
+        }
+        if (user.rol === 'ROLE_ADMIN') {
+            alert('Los administradores no pueden comprar productos');
+            return;
+        }
         setCart((prevCart) => {
             const existing = prevCart.find((item) => item.producto.id === producto.id);
             if (existing) {
@@ -66,7 +77,6 @@ function App() {
         setIsCartOpen(true); 
     };
 
-    // Actualizar cantidad - CORREGIDA
     const updateQuantity = (productoId, nuevaCantidad) => {
         if (nuevaCantidad <= 0) {
             removeFromCart(productoId);
@@ -86,18 +96,15 @@ function App() {
         );
     };
 
-    // Remover del carrito - CORREGIDA
     const removeFromCart = (productoId) => {
         setCart(prevCart => prevCart.filter((item) => item.producto.id !== productoId));
     };
 
-    // Limpiar carrito
     const clearCart = () => setCart([]);
 
-    // Contar productos en carrito - CORREGIDA
-    const cartCount = cart.reduce((sum, item) => sum + item.cantidad, 0);
+    const carCount = cart.reduce((total, item) => total + item.cantidad, 0);
 
-    // Vista contenido principal
+    // ============ VISTAS ============
     const vistaContenido = () => {
         switch (vistaActual) {
             case 'catalogo':
@@ -107,11 +114,10 @@ function App() {
                     addToCart={addToCart}
                 />;
 
-            case 'admin-dashboard': // Cambiado de 'admin-panel' a 'admin-dashboard'
+            case 'admin-panel':
                 return <AdminDashboard 
                     setVistaActual={setVistaActual} 
                     usuario={user}
-                    addToCart={addToCart}
                 />;
 
             case 'register':
@@ -128,6 +134,15 @@ function App() {
                         onGoToRegister={() => setVistaActual('register')}
                     />
                 );
+            case 'perfil':
+                return <Perfil usuario={user} setVistaActual={setVistaActual} />;
+
+            case 'checkout':
+                return <CheckoutForm 
+                    ventaActiva={ventaActiva}
+                    setVistaActual={setVistaActual}
+                />;
+
             default:
                 return <Catalogo 
                     setVistaActual={setVistaActual}
@@ -137,13 +152,10 @@ function App() {
         }
     };
 
-    // Ya tienes cartCount arriba, este es redundante pero lo dejamos
-    const carCount = cart.reduce((total, item) => total + item.cantidad, 0);
-
     return (
         <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 antialiased">
             <Navbar
-                vistaActual={vistaActual} // Cambiado de VistaActual a vistaActual
+                vistaActual={vistaActual}
                 setVistaActual={setVistaActual}
                 user={user}
                 onLogout={handleLogout}
@@ -154,15 +166,19 @@ function App() {
             <main className="flex-grow pb-12">
                 {vistaContenido()}
             </main>
-            <Cart isOpen={isCartOpen}
-            onClose ={()=>setIsCartOpen(false)}
-            cart={cart}
-            updateQuantity={updateQuantity}
-            removeFromCart={removeFromCart}
-            clearCart={clearCart}
-            setVistaActual={setVistaActual}
-            setVentaActiva={setVentaActiva}
+            
+            <Cart 
+                isOpen={isCartOpen}
+                onClose={() => setIsCartOpen(false)}
+                cart={cart}
+                updateQuantity={updateQuantity}
+                removeFromCart={removeFromCart}
+                clearCart={clearCart}
+                setVistaActual={setVistaActual}
+                setVentaActiva={setVentaActiva}
+                usuario={user}
             />
+            
             <Footer />
         </div>
     );
