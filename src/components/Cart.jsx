@@ -23,7 +23,7 @@ export const Cart = ({
             }}
             onClick={onClose}
         >
-            <div className="max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+            <div className="max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto"
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="rounded-2xl p-6"
@@ -34,15 +34,14 @@ export const Cart = ({
                     }}
                 >
                     <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-2xl font-bold flex items-center gap-2"
+                        <h2 className="text-2xl font-bold"
                             style={{
                                 fontFamily: "'Orbitron', monospace",
                                 color: '#00f0ff',
                                 textShadow: '0 0 30px rgba(0, 240, 255, 0.3)'
                             }}
                         >
-                            <ShoppingCart className="w-6 h-6" />
-                            CARRITO DE COMPRAS
+                            🛒 CARRITO
                             {cart.length > 0 && (
                                 <span className="text-sm font-normal ml-2" style={{ color: '#8a8aaa' }}>
                                     ({cart.length} productos)
@@ -85,11 +84,11 @@ export const Cart = ({
                         </div>
                     ) : (
                         <>
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                                 {cart.map((item) => (
                                     <div
                                         key={item.id}
-                                        className="flex items-center gap-4 p-4 rounded-xl"
+                                        className="flex items-center gap-4 p-3 rounded-xl"
                                         style={{
                                             background: 'rgba(255, 255, 255, 0.03)',
                                             border: '1px solid rgba(255, 255, 255, 0.05)'
@@ -98,23 +97,20 @@ export const Cart = ({
                                         <img
                                             src={item.imagenUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=300'}
                                             alt={item.nombre}
-                                            className="w-20 h-20 object-cover rounded-xl"
+                                            className="w-16 h-16 object-cover rounded-lg"
                                         />
                                         <div className="flex-1">
-                                            <h3 className="font-medium" style={{ color: '#e8e8ff' }}>
+                                            <h3 className="font-medium text-sm" style={{ color: '#e8e8ff' }}>
                                                 {item.nombre}
                                             </h3>
-                                            <p className="text-sm" style={{ color: '#00f0ff' }}>
+                                            <p className="text-sm font-bold" style={{ color: '#00f0ff' }}>
                                                 ${item.precio?.toFixed(2) || '0.00'}
-                                            </p>
-                                            <p className="text-xs" style={{ color: '#8a8aaa' }}>
-                                                Stock: {item.stock}
                                             </p>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <button
                                                 onClick={() => updateQuantity(item.id, (item.cantidad || 1) - 1)}
-                                                className="p-1 rounded-xl transition-all duration-300"
+                                                className="p-1 rounded-lg transition-all duration-300"
                                                 style={{
                                                     background: 'rgba(255, 255, 255, 0.05)',
                                                     border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -123,10 +119,10 @@ export const Cart = ({
                                             >
                                                 <Minus className="w-4 h-4" />
                                             </button>
-                                            <span style={{ color: '#c8c8e8' }}>{item.cantidad || 1}</span>
+                                            <span style={{ color: '#c8c8e8', width: '20px', textAlign: 'center' }}>{item.cantidad || 1}</span>
                                             <button
                                                 onClick={() => updateQuantity(item.id, (item.cantidad || 1) + 1)}
-                                                className="p-1 rounded-xl transition-all duration-300"
+                                                className="p-1 rounded-lg transition-all duration-300"
                                                 style={{
                                                     background: 'rgba(255, 255, 255, 0.05)',
                                                     border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -138,14 +134,20 @@ export const Cart = ({
                                         </div>
                                         <button
                                             onClick={() => removeFromCart(item.id)}
-                                            className="p-2 rounded-xl transition-all duration-300"
+                                            className="p-2 rounded-lg transition-all duration-300"
                                             style={{
-                                                color: '#ff00c8',
-                                                background: 'rgba(255, 0, 200, 0.05)',
-                                                border: '1px solid rgba(255, 0, 200, 0.1)'
+                                                color: '#ff4444',
+                                                background: 'rgba(255, 0, 0, 0.05)',
+                                                border: '1px solid rgba(255, 0, 0, 0.1)'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.target.style.background = 'rgba(255, 0, 0, 0.1)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.target.style.background = 'rgba(255, 0, 0, 0.05)';
                                             }}
                                         >
-                                            <Trash2 className="w-5 h-5" />
+                                            <Trash2 className="w-4 h-4" />
                                         </button>
                                     </div>
                                 ))}
@@ -156,7 +158,7 @@ export const Cart = ({
                             >
                                 <div className="flex justify-between items-center mb-4">
                                     <span className="text-lg font-bold" style={{ color: '#c8c8e8' }}>
-                                        Total:
+                                        TOTAL:
                                     </span>
                                     <span className="text-2xl font-bold"
                                         style={{
@@ -191,7 +193,7 @@ export const Cart = ({
                                     }}
                                 >
                                     <CreditCard className="w-4 h-4" />
-                                    Pagar Ahora
+                                    PAGAR AHORA
                                 </button>
 
                                 <button
