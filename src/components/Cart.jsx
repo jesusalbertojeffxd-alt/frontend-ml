@@ -36,12 +36,12 @@ export const Cart = ({
         setErrorPago('');
 
         try {
-            // Crear la venta
+            // Crear la venta con el formato correcto
             const ventaData = {
-                items: cart.map(item => ({
-                    productoId: item.id,
+                detalles: cart.map(item => ({
+                    producto: { id: item.id },
                     cantidad: item.cantidad || 1,
-                    precio: item.precio
+                    precioUnitario: item.precio
                 })),
                 total: total,
                 metodoPago: 'tarjeta'
@@ -60,7 +60,6 @@ export const Cart = ({
                     // Redirigir a Stripe
                     window.location.href = pagoResponse.url;
                 } else if (pagoResponse && pagoResponse.clientSecret) {
-                    // Si tienes Stripe Elements, usarlo
                     setVentaActiva(response);
                     setVistaActual('checkout');
                     onClose();
