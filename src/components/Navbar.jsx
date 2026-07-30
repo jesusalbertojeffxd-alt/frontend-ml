@@ -1,471 +1,322 @@
-import React, { useState, useEffect } from 'react';
-import { ShoppingCart, User, LogIn, LogOut, Home, Clock, Menu, X } from 'lucide-react';
+import React from 'react';
 import { apiService } from '../services/apiService';
+import { ShoppingCart, LogOut, User, LayoutDashboard, ShoppingBag, UserCircle } from 'lucide-react';
 
-export const Navbar = ({ 
-    usuario, 
-    setUsuario, 
-    setVistaActual, 
-    vistaActual,
-    carrito = [], 
-    setCarrito,
-    setMostrarCarrito
-}) => {
-    const [menuAbierto, setMenuAbierto] = useState(false);
-    const [pedidosPendientesCount, setPedidosPendientesCount] = useState(0);
-
-    useEffect(() => {
-        if (usuario) {
-            cargarPedidosPendientes();
-        }
-    }, [usuario]);
-
-    const cargarPedidosPendientes = async () => {
-        try {
-            const ventas = await apiService.getMyPurchases();
-            const ventasArray = Array.isArray(ventas) ? ventas : [];
-            const pendientes = ventasArray.filter(v => v.estadoPago === 'PENDIENTE');
-            setPedidosPendientesCount(pendientes.length);
-        } catch (error) {
-            console.log('No se pudieron cargar pedidos pendientes:', error.message);
-            setPedidosPendientesCount(0);
-        }
-    };
-
+export const Navbar = ({ vistaActual, setVistaActual, user, onLogout, carCount, openCart }) => {
     const handleLogout = () => {
         apiService.logout();
-        setUsuario(null);
+        onLogout();
         setVistaActual('catalogo');
-        setCarrito([]);
-        setMenuAbierto(false);
-    };
+    }
 
-    const carritoArray = Array.isArray(carrito) ? carrito : [];
-    const totalItems = carritoArray.reduce((sum, item) => sum + (item.cantidad || 1), 0);
+    const isClient = user && user.rol === 'ROLE_CLIENTE';
+    const isAdmin = user && user.rol === 'ROLE_ADMIN';
 
     return (
-        <nav className="sticky top-0 z-50"
+        <nav className="sticky top-0 z-50 shadow-md"
             style={{
-                background: 'rgba(8, 10, 20, 0.95)',
-                borderBottom: '1px solid rgba(0, 240, 255, 0.15)',
-                backdropFilter: 'blur(12px)',
-                boxShadow: '0 4px 30px rgba(0, 0, 0, 0.8)'
+                background: 'rgba(0, 0, 0, 0.92)',
+                backdropFilter: 'blur(20px)',
+                borderBottom: '2px solid #00f0ff',
+                boxShadow: '0 0 60px rgba(0, 240, 255, 0.08), inset 0 0 60px rgba(0, 240, 255, 0.02)',
+                transition: 'all 0.3s ease'
             }}
         >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
+                    
                     {/* Logo */}
-                    <button
-                        onClick={() => {
-                            setVistaActual('catalogo');
-                            setMenuAbierto(false);
-                        }}
-                        className="flex items-center gap-2 transition-all duration-300 hover:scale-105"
+                    <div 
+                        className="flex items-center cursor-pointer group" 
+                        onClick={() => setVistaActual('catalogo')}
                     >
-                        <div className="relative">
-                            <span className="text-2xl font-extrabold"
-                                style={{
-                                    fontFamily: "'Orbitron', monospace",
-                                    color: '#00f0ff',
-                                    textShadow: '0 0 30px rgba(0, 240, 255, 0.3)'
-                                }}
-                            >
-                                ALIXX
-                            </span>
-                            <span className="text-2xl font-extrabold"
-                                style={{
-                                    fontFamily: "'Orbitron', monospace",
-                                    color: '#ff00c8',
-                                    textShadow: '0 0 30px rgba(255, 0, 200, 0.3)'
-                                }}
-                            >
-                                PRES
-                            </span>
-                        </div>
-                        <div className="w-1 h-6"
+                        <ShoppingBag className="h-8 w-8 transition-all duration-300 group-hover:scale-110 group-hover:rotate-12"
                             style={{
-                                background: 'linear-gradient(to bottom, #00f0ff, #ff00c8)',
-                                boxShadow: '0 0 20px rgba(0, 240, 255, 0.3)'
+                                color: '#00f0ff',
+                                filter: 'drop-shadow(0 0 20px rgba(0, 240, 255, 0.5))'
                             }}
                         />
-                        <span className="text-xs font-light tracking-widest"
+                        <span className="ml-2 font-bold text-lg transition-all duration-300 group-hover:scale-105"
                             style={{
-                                fontFamily: "'Rajdhani', sans-serif",
-                                color: '#8a8aaa',
+                                fontFamily: "'Orbitron', monospace",
+                                color: '#00f0ff',
+                                textShadow: '0 0 30px rgba(0, 240, 255, 0.3)',
                                 letterSpacing: '2px'
                             }}
                         >
-                            GAMER
+                            Alixx<span style={{
+                                color: '#ff00c8',
+                                textShadow: '0 0 30px rgba(255, 0, 200, 0.3)'
+                            }}>pres</span>
                         </span>
-                    </button>
+                    </div>
 
-                    {/* Desktop Menu */}
-                    <div className="hidden md:flex items-center gap-2">
-                        <button
-                            onClick={() => {
-                                setVistaActual('catalogo');
-                                setMenuAbierto(false);
-                            }}
-                            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 flex items-center gap-2 ${
-                                vistaActual === 'catalogo' ? 'font-bold' : ''
-                            }`}
+                    <div className="flex items-center space-x-4">
+                        
+                        {/* Catálogo */}
+                        <button 
+                            onClick={() => setVistaActual('catalogo')}
+                            className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 hover:scale-105
+                            ${vistaActual === 'catalogo' ? 'font-bold border-b-2' : ''}`}
                             style={{
-                                background: vistaActual === 'catalogo' 
-                                    ? 'rgba(0, 240, 255, 0.15)' 
-                                    : 'transparent',
-                                border: vistaActual === 'catalogo'
-                                    ? '1px solid #00f0ff'
-                                    : '1px solid transparent',
-                                color: vistaActual === 'catalogo' 
-                                    ? '#00f0ff' 
-                                    : '#9a9aba',
-                                boxShadow: vistaActual === 'catalogo'
-                                    ? '0 0 30px rgba(0, 240, 255, 0.08)'
-                                    : 'none'
-                            }}
-                        >
-                            <Home className="w-4 h-4" />
-                            Inicio
-                        </button>
-
-                        {/* BOTON CARRITO - ARREGLADO */}
-                        <button
-                            onClick={() => {
-                                console.log('Abriendo carrito...');
-                                if (setMostrarCarrito) {
-                                    setMostrarCarrito(true);
-                                }
-                                if (setVistaActual) {
-                                    setVistaActual('cart');
-                                }
-                                setMenuAbierto(false);
-                            }}
-                            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 flex items-center gap-2 relative ${
-                                vistaActual === 'cart' ? 'font-bold' : ''
-                            }`}
-                            style={{
-                                background: vistaActual === 'cart' 
-                                    ? 'rgba(0, 240, 255, 0.15)' 
-                                    : 'transparent',
-                                border: vistaActual === 'cart'
-                                    ? '1px solid #00f0ff'
-                                    : '1px solid transparent',
-                                color: vistaActual === 'cart' 
-                                    ? '#00f0ff' 
-                                    : '#9a9aba',
-                                boxShadow: vistaActual === 'cart'
-                                    ? '0 0 30px rgba(0, 240, 255, 0.08)'
-                                    : 'none'
+                                fontFamily: "'Rajdhani', sans-serif",
+                                letterSpacing: '1px',
+                                textTransform: 'uppercase',
+                                color: vistaActual === 'catalogo' ? '#00f0ff' : '#c8c8e8',
+                                borderColor: '#00f0ff',
+                                background: vistaActual === 'catalogo' ? 'rgba(0, 240, 255, 0.08)' : 'transparent',
+                                boxShadow: vistaActual === 'catalogo' ? '0 0 30px rgba(0, 240, 255, 0.05)' : 'none'
                             }}
                             onMouseEnter={(e) => {
-                                if (vistaActual !== 'cart') {
+                                if (vistaActual !== 'catalogo') {
                                     e.target.style.color = '#00f0ff';
-                                    e.target.style.borderColor = 'rgba(0, 240, 255, 0.3)';
+                                    e.target.style.textShadow = '0 0 20px rgba(0, 240, 255, 0.2)';
                                 }
                             }}
                             onMouseLeave={(e) => {
-                                if (vistaActual !== 'cart') {
-                                    e.target.style.color = '#9a9aba';
-                                    e.target.style.borderColor = 'transparent';
+                                if (vistaActual !== 'catalogo') {
+                                    e.target.style.color = '#c8c8e8';
+                                    e.target.style.textShadow = 'none';
                                 }
                             }}
                         >
-                            <ShoppingCart className="w-4 h-4" />
-                            Carrito
-                            {totalItems > 0 && (
-                                <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold rounded-full"
-                                    style={{
-                                        background: 'linear-gradient(135deg, #ff00c8, #b400ff)',
-                                        color: '#fff',
-                                        boxShadow: '0 0 20px rgba(255, 0, 200, 0.4)'
-                                    }}
-                                >
-                                    {totalItems}
-                                </span>
-                            )}
+                            Catálogo
                         </button>
 
-                        {usuario && (
-                            <button
-                                onClick={() => {
-                                    setVistaActual('compras');
-                                    setMenuAbierto(false);
-                                }}
-                                className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 flex items-center gap-2 relative ${
-                                    vistaActual === 'compras' ? 'font-bold' : ''
-                                }`}
+                        {/* Mi Perfil (Solo Cliente) */}
+                        {isClient && (
+                            <button 
+                                onClick={() => setVistaActual('perfil')}
+                                className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 hover:scale-105
+                                ${vistaActual === 'perfil' ? 'font-bold border-b-2' : ''}`}
                                 style={{
-                                    background: vistaActual === 'compras' 
-                                        ? 'rgba(255, 0, 200, 0.15)' 
-                                        : 'transparent',
-                                    border: vistaActual === 'compras'
-                                        ? '1px solid #ff00c8'
-                                        : '1px solid transparent',
-                                    color: vistaActual === 'compras' 
-                                        ? '#ff00c8' 
-                                        : '#9a9aba',
-                                    boxShadow: vistaActual === 'compras'
-                                        ? '0 0 30px rgba(255, 0, 200, 0.08)'
-                                        : 'none'
+                                    fontFamily: "'Rajdhani', sans-serif",
+                                    letterSpacing: '1px',
+                                    textTransform: 'uppercase',
+                                    color: vistaActual === 'perfil' ? '#ff00c8' : '#c8c8e8',
+                                    borderColor: '#ff00c8',
+                                    background: vistaActual === 'perfil' ? 'rgba(255, 0, 200, 0.08)' : 'transparent',
+                                    boxShadow: vistaActual === 'perfil' ? '0 0 30px rgba(255, 0, 200, 0.05)' : 'none'
+                                }}
+                                onMouseEnter={(e) => {
+                                    if (vistaActual !== 'perfil') {
+                                        e.target.style.color = '#ff00c8';
+                                        e.target.style.textShadow = '0 0 20px rgba(255, 0, 200, 0.2)';
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (vistaActual !== 'perfil') {
+                                        e.target.style.color = '#c8c8e8';
+                                        e.target.style.textShadow = 'none';
+                                    }
                                 }}
                             >
-                                <Clock className="w-4 h-4" />
-                                Mis Compras
-                                {pedidosPendientesCount > 0 && (
-                                    <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold rounded-full"
+                                <UserCircle className="w-4 h-4 inline mr-1" />
+                                Mi Perfil
+                            </button>
+                        )}
+
+                        {/* Admin Panel (Solo Admin) */}
+                        {isAdmin && (
+                            <button 
+                                onClick={() => setVistaActual('admin-panel')}
+                                className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 hover:scale-105
+                                ${vistaActual === 'admin-panel' ? 'font-bold border-b-2' : ''}`}
+                                style={{
+                                    fontFamily: "'Rajdhani', sans-serif",
+                                    letterSpacing: '1px',
+                                    textTransform: 'uppercase',
+                                    color: vistaActual === 'admin-panel' ? '#b400ff' : '#c8c8e8',
+                                    borderColor: '#b400ff',
+                                    background: vistaActual === 'admin-panel' ? 'rgba(180, 0, 255, 0.08)' : 'transparent',
+                                    boxShadow: vistaActual === 'admin-panel' ? '0 0 30px rgba(180, 0, 255, 0.05)' : 'none'
+                                }}
+                                onMouseEnter={(e) => {
+                                    if (vistaActual !== 'admin-panel') {
+                                        e.target.style.color = '#b400ff';
+                                        e.target.style.textShadow = '0 0 20px rgba(180, 0, 255, 0.2)';
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (vistaActual !== 'admin-panel') {
+                                        e.target.style.color = '#c8c8e8';
+                                        e.target.style.textShadow = 'none';
+                                    }
+                                }}
+                            >
+                                <LayoutDashboard className="w-4 h-4 inline mr-1" />
+                                Admin Panel
+                            </button>
+                        )}
+
+                        {/* Usuario Logueado */}
+                        {user ? (
+                            <>
+                                <div className="flex items-center text-sm font-medium px-3 py-1.5 rounded-full gap-1.5 max-w-[150px] truncate"
+                                    style={{
+                                        background: 'rgba(0, 240, 255, 0.06)',
+                                        border: '1px solid rgba(0, 240, 255, 0.15)',
+                                        boxShadow: '0 0 20px rgba(0, 240, 255, 0.02)'
+                                    }}
+                                >
+                                    <User className="w-4 h-4 flex-shrink-0"
                                         style={{
-                                            background: 'linear-gradient(135deg, #ff4444, #cc0000)',
-                                            color: '#fff',
-                                            boxShadow: '0 0 20px rgba(255, 0, 0, 0.4)',
-                                            animation: 'pulse 2s infinite'
+                                            color: '#00f0ff',
+                                            filter: 'drop-shadow(0 0 10px rgba(0, 240, 255, 0.3))'
+                                        }}
+                                    />
+                                    <span className="truncate" style={{ color: '#c8c8e8' }}>
+                                        {user.nombre}
+                                    </span>
+                                </div>
+
+                                {/* Carrito (Solo Cliente) */}
+                                {isClient && (
+                                    <button 
+                                        onClick={openCart}
+                                        className="relative p-2 rounded-full transition-all duration-300 group"
+                                        style={{
+                                            background: 'rgba(0, 240, 255, 0.03)',
+                                            border: '1px solid rgba(0, 240, 255, 0.08)'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.target.style.boxShadow = '0 0 40px rgba(0, 240, 255, 0.1)';
+                                            e.target.style.borderColor = '#00f0ff';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.target.style.boxShadow = 'none';
+                                            e.target.style.borderColor = 'rgba(0, 240, 255, 0.08)';
                                         }}
                                     >
-                                        {pedidosPendientesCount}
-                                    </span>
+                                        <ShoppingCart className="w-6 h-6 transition-all duration-300 group-hover:scale-110 group-hover:rotate-6"
+                                            style={{
+                                                color: '#00f0ff',
+                                                filter: 'drop-shadow(0 0 10px rgba(0, 240, 255, 0.2))'
+                                            }}
+                                        />
+                                        {carCount > 0 && (
+                                            <span className="absolute -top-1 -right-1 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center font-bold border-2 border-black animate-bounce"
+                                                style={{
+                                                    background: '#ff00c8',
+                                                    boxShadow: '0 0 20px rgba(255, 0, 200, 0.5)',
+                                                    fontFamily: "'Orbitron', monospace",
+                                                    fontSize: '10px'
+                                                }}
+                                            >
+                                                {carCount}
+                                            </span>
+                                        )}
+                                    </button>
                                 )}
-                            </button>
-                        )}
 
-                        {usuario ? (
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => {
-                                        setVistaActual('perfil');
-                                        setMenuAbierto(false);
-                                    }}
-                                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 flex items-center gap-2 ${
-                                        vistaActual === 'perfil' ? 'font-bold' : ''
-                                    }`}
-                                    style={{
-                                        background: vistaActual === 'perfil' 
-                                            ? 'rgba(0, 240, 255, 0.15)' 
-                                            : 'transparent',
-                                        border: vistaActual === 'perfil'
-                                            ? '1px solid #00f0ff'
-                                            : '1px solid transparent',
-                                        color: vistaActual === 'perfil' 
-                                            ? '#00f0ff' 
-                                            : '#9a9aba',
-                                        boxShadow: vistaActual === 'perfil'
-                                            ? '0 0 30px rgba(0, 240, 255, 0.08)'
-                                            : 'none'
-                                    }}
-                                >
-                                    <User className="w-4 h-4" />
-                                    {usuario.nombre || usuario.username}
-                                </button>
-                                <button
+                                {/* Logout */}
+                                <button 
                                     onClick={handleLogout}
-                                    className="px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 flex items-center gap-2"
+                                    className="p-2 rounded-full transition-all duration-300"
                                     style={{
-                                        background: 'rgba(255, 0, 0, 0.1)',
-                                        border: '1px solid rgba(255, 0, 0, 0.2)',
-                                        color: '#ff4444'
+                                        background: 'rgba(255, 0, 0, 0.03)',
+                                        border: '1px solid rgba(255, 0, 0, 0.08)'
                                     }}
                                     onMouseEnter={(e) => {
-                                        e.target.style.background = 'rgba(255, 0, 0, 0.2)';
+                                        e.target.style.boxShadow = '0 0 40px rgba(255, 0, 0, 0.15)';
+                                        e.target.style.borderColor = '#ff0044';
+                                        e.target.style.background = 'rgba(255, 0, 0, 0.06)';
                                     }}
                                     onMouseLeave={(e) => {
-                                        e.target.style.background = 'rgba(255, 0, 0, 0.1)';
+                                        e.target.style.boxShadow = 'none';
+                                        e.target.style.borderColor = 'rgba(255, 0, 0, 0.08)';
+                                        e.target.style.background = 'rgba(255, 0, 0, 0.03)';
                                     }}
+                                    title="Cerrar Sesión"
                                 >
-                                    <LogOut className="w-4 h-4" />
-                                    Salir
+                                    <LogOut className="w-5 h-5 transition-all duration-300 hover:scale-110 hover:rotate-12"
+                                        style={{
+                                            color: '#ff4444',
+                                            filter: 'drop-shadow(0 0 10px rgba(255, 0, 0, 0.1))'
+                                        }}
+                                    />
                                 </button>
-                            </div>
+                            </>
                         ) : (
-                            <button
-                                onClick={() => {
-                                    setVistaActual('login');
-                                    setMenuAbierto(false);
-                                }}
-                                className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 flex items-center gap-2 ${
-                                    vistaActual === 'login' || vistaActual === 'registro' ? 'font-bold' : ''
-                                }`}
-                                style={{
-                                    background: vistaActual === 'login' || vistaActual === 'registro'
-                                        ? 'rgba(0, 240, 255, 0.15)' 
-                                        : 'transparent',
-                                    border: vistaActual === 'login' || vistaActual === 'registro'
-                                        ? '1px solid #00f0ff'
-                                        : '1px solid transparent',
-                                    color: vistaActual === 'login' || vistaActual === 'registro'
-                                        ? '#00f0ff' 
-                                        : '#9a9aba',
-                                    boxShadow: vistaActual === 'login' || vistaActual === 'registro'
-                                        ? '0 0 30px rgba(0, 240, 255, 0.08)'
-                                        : 'none'
-                                }}
-                            >
-                                <LogIn className="w-4 h-4" />
-                                Iniciar Sesion
-                            </button>
-                        )}
-                    </div>
-
-                    <button
-                        onClick={() => setMenuAbierto(!menuAbierto)}
-                        className="md:hidden p-2 rounded-xl transition-all duration-300"
-                        style={{
-                            color: '#c8c8e8',
-                            background: 'rgba(255, 255, 255, 0.05)',
-                            border: '1px solid rgba(255, 255, 255, 0.05)'
-                        }}
-                    >
-                        {menuAbierto ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                    </button>
-                </div>
-            </div>
-
-            {menuAbierto && (
-                <div className="md:hidden"
-                    style={{
-                        background: 'rgba(8, 10, 20, 0.98)',
-                        borderTop: '1px solid rgba(0, 240, 255, 0.1)',
-                        backdropFilter: 'blur(12px)'
-                    }}
-                >
-                    <div className="px-4 py-4 space-y-2">
-                        <button
-                            onClick={() => {
-                                setVistaActual('catalogo');
-                                setMenuAbierto(false);
-                            }}
-                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-300"
-                            style={{
-                                background: vistaActual === 'catalogo' 
-                                    ? 'rgba(0, 240, 255, 0.15)' 
-                                    : 'transparent',
-                                color: vistaActual === 'catalogo' 
-                                    ? '#00f0ff' 
-                                    : '#9a9aba'
-                            }}
-                        >
-                            <Home className="w-5 h-5" />
-                            Inicio
-                        </button>
-
-                        <button
-                            onClick={() => {
-                                if (setMostrarCarrito) {
-                                    setMostrarCarrito(true);
-                                }
-                                if (setVistaActual) {
-                                    setVistaActual('cart');
-                                }
-                                setMenuAbierto(false);
-                            }}
-                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-300 relative"
-                            style={{
-                                background: vistaActual === 'cart' 
-                                    ? 'rgba(0, 240, 255, 0.15)' 
-                                    : 'transparent',
-                                color: vistaActual === 'cart' 
-                                    ? '#00f0ff' 
-                                    : '#9a9aba'
-                            }}
-                        >
-                            <ShoppingCart className="w-5 h-5" />
-                            Carrito
-                            {totalItems > 0 && (
-                                <span className="ml-auto flex items-center justify-center w-5 h-5 text-xs font-bold rounded-full"
-                                    style={{
-                                        background: 'linear-gradient(135deg, #ff00c8, #b400ff)',
-                                        color: '#fff'
-                                    }}
-                                >
-                                    {totalItems}
-                                </span>
-                            )}
-                        </button>
-
-                        {usuario && (
+                            /* Usuario No Logueado */
                             <>
-                                <button
-                                    onClick={() => {
-                                        setVistaActual('compras');
-                                        setMenuAbierto(false);
-                                    }}
-                                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-300 relative"
+                                <button 
+                                    onClick={() => setVistaActual('login')}
+                                    className="px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 hover:scale-105"
                                     style={{
-                                        background: vistaActual === 'compras' 
-                                            ? 'rgba(255, 0, 200, 0.15)' 
-                                            : 'transparent',
-                                        color: vistaActual === 'compras' 
-                                            ? '#ff00c8' 
-                                            : '#9a9aba'
+                                        fontFamily: "'Rajdhani', sans-serif",
+                                        letterSpacing: '1px',
+                                        textTransform: 'uppercase',
+                                        color: '#c8c8e8',
+                                        border: '1px solid rgba(0, 240, 255, 0.15)',
+                                        background: 'rgba(0, 240, 255, 0.03)'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.target.style.boxShadow = '0 0 40px rgba(0, 240, 255, 0.08)';
+                                        e.target.style.borderColor = '#00f0ff';
+                                        e.target.style.color = '#00f0ff';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.target.style.boxShadow = 'none';
+                                        e.target.style.borderColor = 'rgba(0, 240, 255, 0.15)';
+                                        e.target.style.color = '#c8c8e8';
                                     }}
                                 >
-                                    <Clock className="w-5 h-5" />
-                                    Mis Compras
-                                    {pedidosPendientesCount > 0 && (
-                                        <span className="ml-auto flex items-center justify-center w-5 h-5 text-xs font-bold rounded-full"
-                                            style={{
-                                                background: 'linear-gradient(135deg, #ff4444, #cc0000)',
-                                                color: '#fff'
-                                            }}
-                                        >
-                                            {pedidosPendientesCount}
-                                        </span>
-                                    )}
+                                    Iniciar Sesión
                                 </button>
-
-                                <button
-                                    onClick={() => {
-                                        setVistaActual('perfil');
-                                        setMenuAbierto(false);
-                                    }}
-                                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-300"
+                                <button 
+                                    onClick={() => setVistaActual('register')}
+                                    className="px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 hover:scale-105 shadow-md"
                                     style={{
-                                        background: vistaActual === 'perfil' 
-                                            ? 'rgba(0, 240, 255, 0.15)' 
-                                            : 'transparent',
-                                        color: vistaActual === 'perfil' 
-                                            ? '#00f0ff' 
-                                            : '#9a9aba'
+                                        fontFamily: "'Orbitron', monospace",
+                                        letterSpacing: '1px',
+                                        textTransform: 'uppercase',
+                                        background: 'linear-gradient(135deg, #00f0ff, #b400ff)',
+                                        color: '#fff',
+                                        border: 'none',
+                                        boxShadow: '0 0 40px rgba(0, 240, 255, 0.15)'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.target.style.boxShadow = '0 0 60px rgba(255, 0, 200, 0.2)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.target.style.boxShadow = '0 0 40px rgba(0, 240, 255, 0.15)';
                                     }}
                                 >
-                                    <User className="w-5 h-5" />
-                                    {usuario.nombre || usuario.username}
-                                </button>
-
-                                <button
-                                    onClick={handleLogout}
-                                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-300"
-                                    style={{
-                                        background: 'rgba(255, 0, 0, 0.1)',
-                                        color: '#ff4444'
-                                    }}
-                                >
-                                    <LogOut className="w-5 h-5" />
-                                    Cerrar Sesion
+                                    Registrarse
                                 </button>
                             </>
                         )}
-
-                        {!usuario && (
-                            <button
-                                onClick={() => {
-                                    setVistaActual('login');
-                                    setMenuAbierto(false);
-                                }}
-                                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-300"
-                                style={{
-                                    background: vistaActual === 'login' || vistaActual === 'registro'
-                                        ? 'rgba(0, 240, 255, 0.15)' 
-                                        : 'transparent',
-                                    color: vistaActual === 'login' || vistaActual === 'registro'
-                                        ? '#00f0ff' 
-                                        : '#9a9aba'
-                                }}
-                            >
-                                <LogIn className="w-5 h-5" />
-                                Iniciar Sesion
-                            </button>
-                        )}
                     </div>
                 </div>
-            )}
+            </div>
+
+            {/* Línea neon animada */}
+            <div style={{
+                height: '2px',
+                width: '100%',
+                background: 'linear-gradient(90deg, transparent, #00f0ff, #ff00c8, #b400ff, transparent)',
+                backgroundSize: '200% 100%',
+                animation: 'neonLine 3s linear infinite',
+                boxShadow: '0 0 40px rgba(0, 240, 255, 0.2)'
+            }} />
+            
+            <style>
+                {`
+                    @keyframes neonLine {
+                        0% { background-position: -200% 0; }
+                        100% { background-position: 200% 0; }
+                    }
+                    @keyframes rotateGlow {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                    @keyframes pulseButton {
+                        0%, 100% { box-shadow: 0 0 30px rgba(0, 240, 255, 0.2); }
+                        50% { box-shadow: 0 0 60px rgba(0, 240, 255, 0.4), 0 0 120px rgba(255, 0, 200, 0.2); }
+                    }
+                `}
+            </style>
         </nav>
     );
 };
