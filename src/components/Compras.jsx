@@ -1,121 +1,187 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { apiService } from '../services/apiService';
+import { ShoppingBag, CheckCircle, XCircle, AlertCircle, Clock } from 'lucide-react';
 
-// Este componente solo recibe las compras (props) y las muestra.
-const MisComprasVista = ({ compras }) => {
-  // Datos de ejemplo por si no se le pasa la propiedad 'compras'
-  const listaCompras = compras || [
-    {
-      id: "VTA-00102",
-      fecha: "15 de Julio, 2026",
-      total: 1250.00,
-      estado: "Entregado",
-      cantidadArticulos: 3
-    },
-    {
-      id: "VTA-00105",
-      fecha: "18 de Julio, 2026",
-      total: 899.50,
-      estado: "En Camino",
-      cantidadArticulos: 1
-    },
-    {
-      id: "VTA-00108",
-      fecha: "20 de Julio, 2026",
-      total: 450.00,
-      estado: "Procesando",
-      cantidadArticulos: 2
+const Compras = ({ usuario, setVistaActual }) => {
+    const [compras, setCompras] = useState([]);
+    const [cargando, setCargando] = useState(true);
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        cargarCompras();
+    }, []);
+
+    const cargarCompras = async () => {
+        try {
+            setCargando(true);
+            const ventas = await apiService.getMyPurchases();
+            console.log('Todas las ventas:', ventas);
+            
+            // FILTRAR SOLO LAS PAGADAS
+            const ventasArray = Array.isArray(ventas) ? ventas : [];
+            const comprasPagadas = ventasArray.filter(v => v.estadoPago === 'PAGADO');
+            
+            console.log('Compras pagadas:', comprasPagadas);
+            setCompras(comprasPagadas);
+        } catch (err) {
+            console.error('Error al cargar compras:', err);
+            setError('Error al cargar tus compras');
+            setCompras([]);
+        } finally {
+            setCargando(false);
+        }
+    };
+
+    if (cargando) {
+        return (
+            <div className="flex justify-center items-center py-20">
+                <div className="animate-spin rounded-full h-12 w-12"
+                    style={{
+                        border: '3px solid rgba(0, 240, 255, 0.1)',
+                        borderTopColor: '#00f0ff'
+                    }}
+                />
+            </div>
+        );
     }
-  ];
 
-  // Función sencilla para dar color al estado de la compra
-  const colorEstado = (estado) => {
-    switch (estado) {
-      case 'Entregado': return { bg: '#d4edda', text: '#155724' };
-      case 'En Camino': return { bg: '#cce5ff', text: '#004085' };
-      case 'Procesando': return { bg: '#fff3cd', text: '#856404' };
-      default: return { bg: '#e2e3e5', text: '#383d41' };
+    if (compras.length === 0) {
+        return (
+            <div className="max-w-4xl mx-auto p-6">
+                <div className="rounded-2xl p-12 text-center"
+                    style={{
+                        background: 'rgba(15, 18, 30, 0.95)',
+                        border: '1px solid rgba(0, 240, 255, 0.3)',
+                        boxShadow: '0 0 60px rgba(0, 240, 255, 0.08)'
+                    }}
+                >
+                    <ShoppingBag className="w-24 h-24 mx-auto mb-4" style={{ color: '#00f0ff' }} />
+                    <h2 className="text-2xl font-bold mb-2"
+                        style={{
+                            fontFamily: "'Orbitron', monospace",
+                            color: '#00f0ff'
+                        }}
+                    >
+                        SIN COMPRAS PAGADAS
+                    </h2>
+                    <p className="text-sm" style={{ color: '#8a8aaa' }}>
+                        Aun no has realizado ninguna compra pagada.
+                    </p>
+                    <button
+                        onClick={() => setVistaActual('catalogo')}
+                        className="mt-4 px-6 py-2 rounded-xl text-sm font-bold transition-all duration-300"
+                        style={{
+                            background: 'rgba(0, 240, 255, 0.1)',
+                            border: '1px solid rgba(0, 240, 255, 0.2)',
+                            color: '#00f0ff'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.target.style.background = 'rgba(0, 240, 255, 0.2)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.target.style.background = 'rgba(0, 240, 255, 0.1)';
+                        }}
+                    >
+                        Volver al catalogo
+                    </button>
+                </div>
+            </div>
+        );
     }
-  };
 
-  return (
-    <div style={{ fontFamily: 'Arial, sans-serif', padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-      <h2 style={{ color: '#333', borderBottom: '2px solid #eee', paddingBottom: '10px', marginBottom: '20px' }}>
-        Historial de Compras
-      </h2>
+    return (
+        <div className="max-w-4xl mx-auto p-6">
+            <div className="rounded-2xl p-6"
+                style={{
+                    background: 'rgba(15, 18, 30, 0.95)',
+                    border: '1px solid rgba(0, 240, 255, 0.3)',
+                    boxShadow: '0 0 60px rgba(0, 240, 255, 0.08)'
+                }}
+            >
+                <h2 className="text-2xl font-bold mb-6 flex items-center gap-2"
+                    style={{
+                        fontFamily: "'Orbitron', monospace",
+                        color: '#00f0ff',
+                        textShadow: '0 0 30px rgba(0, 240, 255, 0.3)'
+                    }}
+                >
+                    <CheckCircle className="w-6 h-6" />
+                    MIS COMPRAS PAGADAS
+                    <span className="text-sm font-normal ml-2"
+                        style={{ color: '#8a8aaa' }}
+                    >
+                        ({compras.length} compras)
+                    </span>
+                </h2>
 
-      {listaCompras.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '40px', color: '#666', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
-          <p>Aún no has realizado ninguna compra.</p>
+                {error && (
+                    <div className="p-3 rounded-xl flex items-center gap-2 text-sm mb-4"
+                        style={{
+                            background: 'rgba(255, 0, 200, 0.08)',
+                            border: '1px solid rgba(255, 0, 200, 0.2)',
+                            color: '#ff44b0'
+                        }}
+                    >
+                        <AlertCircle className="w-4 h-4" />
+                        {error}
+                    </div>
+                )}
+
+                <div className="space-y-4">
+                    {compras.map((venta) => {
+                        return (
+                            <div
+                                key={venta.id}
+                                className="p-4 rounded-xl flex justify-between items-center"
+                                style={{
+                                    background: 'rgba(0, 255, 65, 0.05)',
+                                    border: '1px solid rgba(0, 255, 65, 0.2)'
+                                }}
+                            >
+                                <div>
+                                    <p className="font-bold" style={{ color: '#c8c8e8' }}>
+                                        Pedido #{venta.id}
+                                    </p>
+                                    <p className="text-sm" style={{ color: '#8a8aaa' }}>
+                                        Total: ${venta.total?.toFixed(2) || '0.00'}
+                                    </p>
+                                    <p className="text-xs" style={{ color: '#8a8aaa' }}>
+                                        Fecha: {venta.fechaCreacion ? new Date(venta.fechaCreacion).toLocaleDateString() : 'No disponible'}
+                                    </p>
+                                    <div className="mt-1">
+                                        <span className="text-xs font-bold flex items-center gap-1"
+                                            style={{ color: '#00ff41' }}
+                                        >
+                                            <CheckCircle className="w-3 h-3" />
+                                            Pagado
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                <button
+                    onClick={() => setVistaActual('catalogo')}
+                    className="mt-6 w-full py-3 rounded-xl text-sm font-bold transition-all duration-300"
+                    style={{
+                        background: 'rgba(0, 240, 255, 0.1)',
+                        border: '1px solid rgba(0, 240, 255, 0.2)',
+                        color: '#00f0ff'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.target.style.background = 'rgba(0, 240, 255, 0.2)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.target.style.background = 'rgba(0, 240, 255, 0.1)';
+                    }}
+                >
+                    Volver al catalogo
+                </button>
+            </div>
         </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          {listaCompras.map((compra) => {
-            const estiloBadge = colorEstado(compra.estado);
-
-            return (
-              <div key={compra.id} style={{ 
-                border: '1px solid #ddd', 
-                borderRadius: '8px', 
-                padding: '15px 20px', 
-                backgroundColor: '#fff',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                flexWrap: 'wrap'
-              }}>
-                
-                {/* Información Principal */}
-                <div style={{ flex: '1', minWidth: '200px' }}>
-                  <p style={{ margin: '0 0 5px 0', fontSize: '14px', color: '#666' }}>
-                    Pedido: <strong style={{ color: '#333' }}>{compra.id}</strong>
-                  </p>
-                  <p style={{ margin: '0 0 5px 0', fontSize: '14px', color: '#666' }}>
-                    Fecha: {compra.fecha}
-                  </p>
-                  <p style={{ margin: '0', fontSize: '13px', color: '#888' }}>
-                    {compra.cantidadArticulos} artículo(s)
-                  </p>
-                </div>
-
-                {/* Precio y Estado */}
-                <div style={{ textAlign: 'right', minWidth: '150px' }}>
-                  <p style={{ margin: '0 0 10px 0', fontSize: '18px', fontWeight: 'bold', color: '#111' }}>
-                    ${compra.total.toFixed(2)}
-                  </p>
-                  <span style={{ 
-                    backgroundColor: estiloBadge.bg, 
-                    color: estiloBadge.text, 
-                    padding: '5px 10px', 
-                    borderRadius: '20px', 
-                    fontSize: '12px',
-                    fontWeight: 'bold'
-                  }}>
-                    {compra.estado}
-                  </span>
-                </div>
-
-                {/* Botón de Acción */}
-                <div style={{ width: '100%', marginTop: '15px', borderTop: '1px solid #eee', paddingTop: '15px', textAlign: 'right' }}>
-                  <button style={{ 
-                    padding: '8px 15px', 
-                    backgroundColor: 'transparent', 
-                    color: '#0056b3', 
-                    border: '1px solid #0056b3', 
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '14px'
-                  }}>
-                    Ver Detalles
-                  </button>
-                </div>
-
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
+    );
 };
 
-export default MisComprasVista;
+export default Compras;
