@@ -147,7 +147,7 @@ export const Catalogo = ({ setVistaActual, usuario, addToCart }) => {
                             letterSpacing: '1px'
                         }}
                     >
-                        Explora las mejores ofertas, productos de calidad y envíos garantizados
+                        Explora las mejores ofertas, productos de calidad y envios garantizados
                     </p>
                 </div>
                 <div className="absolute right-0 bottom-0 top-0 opacity-5 flex items-center justify-center p-8">
@@ -233,7 +233,7 @@ export const Catalogo = ({ setVistaActual, usuario, addToCart }) => {
                                 textShadow: '0 0 20px rgba(255, 0, 200, 0.3)'
                             }}
                         >
-                            <Filter className="w-4 h-4" /> Categorías
+                            <Filter className="w-4 h-4" /> Categorias
                         </h3>
                         <div className="flex flex-col gap-1.5">
                             <button
@@ -270,7 +270,7 @@ export const Catalogo = ({ setVistaActual, usuario, addToCart }) => {
                                     }
                                 }}
                             >
-                                Todas las categorías
+                                Todas las categorias
                             </button>
                             {categorias.map((cat) => (
                                 <button
@@ -342,7 +342,7 @@ export const Catalogo = ({ setVistaActual, usuario, addToCart }) => {
                     </div>
                 </div>
 
-                {/* Cuadrícula de Productos */}
+                {/* Cuadricula de Productos */}
                 <div className="w-full md:w-3/4">
                     {filtroProductos.length === 0 ? (
                         <div className="rounded-2xl p-12 text-center"
@@ -362,7 +362,7 @@ export const Catalogo = ({ setVistaActual, usuario, addToCart }) => {
                                 No se encontraron productos
                             </h3>
                             <p className="text-sm mt-1" style={{ color: '#7a7a9a' }}>
-                                Prueba a modificar los filtros o los términos de búsqueda.
+                                Prueba a modificar los filtros o los terminos de busqueda.
                             </p>
                         </div>
                     ) : (
@@ -401,10 +401,10 @@ export const Catalogo = ({ setVistaActual, usuario, addToCart }) => {
                                             }}
                                         />
 
-                                        {/* Imagen - CORREGIDO: imagen_url */}
+                                        {/* Imagen del producto */}
                                         <div className="h-48 w-full relative overflow-hidden">
                                             <img
-                                                src={producto.imagen_url || defaultImage}
+                                                src={producto.imagenUrl || defaultImage}
                                                 alt={producto.nombre}
                                                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                                 onError={(e) => {
@@ -469,7 +469,7 @@ export const Catalogo = ({ setVistaActual, usuario, addToCart }) => {
                                                 <p className="text-xs line-clamp-2 h-8"
                                                     style={{ color: '#8a8aaa' }}
                                                 >
-                                                    {producto.descripcion || 'Sin descripción disponible.'}
+                                                    {producto.descripcion || 'Sin descripcion disponible.'}
                                                 </p>
                                             </div>
 
@@ -537,7 +537,7 @@ export const Catalogo = ({ setVistaActual, usuario, addToCart }) => {
                                                     }}
                                                 >
                                                     <ShoppingCart className="w-4 h-4" />
-                                                    {!usuario ? 'Inicia sesión para comprar' : isOutOfStock ? 'Agotado' : 'Añadir al Carrito'}
+                                                    {!usuario ? 'Inicia sesion para comprar' : isOutOfStock ? 'Agotado' : 'Anadir al Carrito'}
                                                 </button>
                                             </div>
                                         </div>
