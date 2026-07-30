@@ -9,19 +9,20 @@ import { AdminDashboard } from './components/AdminDashboard';
 import { Cart } from './components/Cart';
 import { Perfil } from './components/Perfil';
 import { CheckoutForm } from './components/CheckoutForm';
+import Compras from './components/Compras';
 
 function App() {
     const [vistaActual, setVistaActual] = useState('catalogo');
-    const [user, setUser] = useState(null);
-    const [cart, setCart] = useState([]);
-    const [isCartOpen, setIsCartOpen] = useState(false);
+    const [usuario, setUsuario] = useState(null);
+    const [carrito, setCarrito] = useState([]);
+    const [mostrarCarrito, setMostrarCarrito] = useState(false);
     const [ventaActiva, setVentaActiva] = useState(null);
 
     // ============ CARGAR DATOS GUARDADOS ============
     useEffect(() => {
         // Cargar usuario
         if (apiService.isAuthenticated()) {
-            setUser({
+            setUsuario({
                 username: localStorage.getItem('username'),
                 nombre: localStorage.getItem('nombre'),
                 rol: localStorage.getItem('rol') 
@@ -33,8 +34,8 @@ function App() {
         if (carritoGuardado) {
             try {
                 const carrito = JSON.parse(carritoGuardado);
-                setCart(carrito);
-                console.log('🛒 Carrito cargado:', carrito.length, 'productos');
+                setCarrito(carrito);
+                console.log('Carrito cargado:', carrito.length, 'productos');
             } catch (e) {
                 console.error('Error al cargar carrito:', e);
             }
@@ -43,12 +44,12 @@ function App() {
 
     // Guardar carrito en localStorage cuando cambie
     useEffect(() => {
-        localStorage.setItem('carrito', JSON.stringify(cart));
-        console.log('💾 Carrito guardado:', cart.length, 'productos');
-    }, [cart]);
+        localStorage.setItem('carrito', JSON.stringify(carrito));
+        console.log('Carrito guardado:', carrito.length, 'productos');
+    }, [carrito]);
 
     const handleLoginSuccess = (userData) => {
-        setUser({
+        setUsuario({
             username: userData.username,
             nombre: userData.nombre,
             rol: userData.rol
@@ -62,8 +63,8 @@ function App() {
 
     const handleLogout = () => {
         apiService.logout();
-        setUser(null);
-        setCart([]);
+        setUsuario(null);
+        setCarrito([]);
         setVentaActiva(null);
         setVistaActual('catalogo');
         localStorage.removeItem('carrito');
@@ -71,31 +72,33 @@ function App() {
 
     // ============ CARRITO ============
     const addToCart = (producto) => {
-        if (!user) {
-            alert('Debes iniciar sesión para comprar');
+        if (!usuario) {
+            alert('Debes iniciar sesion para comprar');
             setVistaActual('login');
             return;
         }
-        if (user.rol === 'ROLE_ADMIN') {
+        if (usuario.rol === 'ROLE_ADMIN') {
             alert('Los administradores no pueden comprar productos');
             return;
         }
-        setCart((prevCart) => {
-            const existing = prevCart.find((item) => item.producto.id === producto.id);
-            if (existing) {
-                if (existing.cantidad >= producto.stock) {
-                    alert("No se puede añadir más stock de " + producto.nombre + 
-                          ". Inventario disponible: " + producto.stock);
-                    return prevCart;
-                }
-                return prevCart.map((item) => 
-                    item.producto.id === producto.id ? 
-                    {...item, cantidad: item.cantidad + 1} : item
-                );
+        
+        const existingItem = carrito.find(item => item.id === producto.id);
+        if (existingItem) {
+            if (existingItem.cantidad >= producto.stock) {
+                alert("No se puede añadir mas stock de " + producto.nombre + 
+                      ". Inventario disponible: " + producto.stock);
+                return;
             }
-            return [...prevCart, {producto: producto, cantidad: 1}];
-        });
-        setIsCartOpen(true); 
+            setCarrito(carrito.map(item => 
+                item.id === producto.id ? 
+                { ...item, cantidad: item.cantidad + 1 } : 
+                item
+            ));
+        } else {
+            setCarrito([...carrito, { ...producto, cantidad: 1 }]);
+        }
+        
+        setMostrarCarrito(true);
     };
 
     const updateQuantity = (productoId, nuevaCantidad) => {
@@ -103,11 +106,11 @@ function App() {
             removeFromCart(productoId);
             return;
         }
-        setCart((prevCart) =>
+        setCarrito((prevCart) =>
             prevCart.map((item) => {
-                if (item.producto.id === productoId) {
-                    if (nuevaCantidad > item.producto.stock) {
-                        alert("No se puede exceder el stock disponible: " + item.producto.stock);
+                if (item.id === productoId) {
+                    if (nuevaCantidad > (item.stock || 999)) {
+                        alert("No se puede exceder el stock disponible: " + (item.stock || 0));
                         return item;
                     }
                     return {...item, cantidad: nuevaCantidad};
@@ -118,12 +121,13 @@ function App() {
     };
 
     const removeFromCart = (productoId) => {
-        setCart(prevCart => prevCart.filter((item) => item.producto.id !== productoId));
+        setCarrito(prevCart => prevCart.filter((item) => item.id !== productoId));
     };
 
-    const clearCart = () => setCart([]);
-
-    const carCount = cart.reduce((total, item) => total + item.cantidad, 0);
+    const clearCart = () => {
+        setCarrito([]);
+        localStorage.removeItem('carrito');
+    };
 
     // ============ VISTAS ============
     const vistaContenido = () => {
@@ -131,14 +135,14 @@ function App() {
             case 'catalogo':
                 return <Catalogo 
                     setVistaActual={setVistaActual} 
-                    usuario={user}
+                    usuario={usuario}
                     addToCart={addToCart}
                 />;
 
             case 'admin-panel':
                 return <AdminDashboard 
                     setVistaActual={setVistaActual} 
-                    usuario={user}
+                    usuario={usuario}
                 />;
 
             case 'register':
@@ -156,49 +160,96 @@ function App() {
                     />
                 );
             case 'perfil':
-                return <Perfil usuario={user} setVistaActual={setVistaActual} />;
+                return <Perfil 
+                    usuario={usuario} 
+                    setVistaActual={setVistaActual} 
+                    setUsuario={setUsuario}
+                />;
+
+            case 'compras':
+                return <Compras 
+                    usuario={usuario}
+                    setVistaActual={setVistaActual}
+                />;
+
+            case 'cart':
+                return <Cart 
+                    carrito={carrito}
+                    setCarrito={setCarrito}
+                    usuario={usuario}
+                    setVistaActual={setVistaActual}
+                    setMostrarCarrito={setMostrarCarrito}
+                />;
 
             case 'checkout':
                 return <CheckoutForm 
-                    ventaActiva={ventaActiva}
+                    carrito={carrito}
+                    total={carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0)}
+                    usuario={usuario}
+                    cliente={null}
+                    onConfirmar={(data) => {
+                        console.log('Pago confirmado:', data);
+                        setVistaActual('catalogo');
+                        setCarrito([]);
+                    }}
+                    onCancelar={() => {
+                        console.log('Pago cancelado');
+                        setVistaActual('catalogo');
+                    }}
                     setVistaActual={setVistaActual}
                 />;
 
             default:
                 return <Catalogo 
                     setVistaActual={setVistaActual}
-                    usuario={user}
+                    usuario={usuario}
                     addToCart={addToCart}
                 />;
         }
     };
 
     return (
-        <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 antialiased">
+        <div className="min-h-screen flex flex-col"
+            style={{
+                background: 'linear-gradient(135deg, #0a0c1a, #141830)',
+                color: '#e8e8ff'
+            }}
+        >
             <Navbar
-                vistaActual={vistaActual}
+                usuario={usuario}
+                setUsuario={setUsuario}
                 setVistaActual={setVistaActual}
-                user={user}
-                onLogout={handleLogout}
-                carCount={carCount}
-                openCart={() => setIsCartOpen(true)}
+                vistaActual={vistaActual}
+                carrito={carrito}
+                setCarrito={setCarrito}
+                setMostrarCarrito={setMostrarCarrito}
             />
 
             <main className="flex-grow pb-12">
                 {vistaContenido()}
             </main>
             
-            <Cart 
-                isOpen={isCartOpen}
-                onClose={() => setIsCartOpen(false)}
-                cart={cart}
-                updateQuantity={updateQuantity}
-                removeFromCart={removeFromCart}
-                clearCart={clearCart}
-                setVistaActual={setVistaActual}
-                setVentaActiva={setVentaActiva}
-                usuario={user}
-            />
+            {mostrarCarrito && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center"
+                    style={{
+                        background: 'rgba(0, 0, 0, 0.8)',
+                        backdropFilter: 'blur(4px)'
+                    }}
+                    onClick={() => setMostrarCarrito(false)}
+                >
+                    <div className="max-w-4xl w-full mx-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <Cart 
+                            carrito={carrito}
+                            setCarrito={setCarrito}
+                            usuario={usuario}
+                            setVistaActual={setVistaActual}
+                            setMostrarCarrito={setMostrarCarrito}
+                        />
+                    </div>
+                </div>
+            )}
             
             <Footer />
         </div>
