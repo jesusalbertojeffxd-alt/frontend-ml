@@ -1,219 +1,355 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { ShoppingCart, Trash2, Plus, Minus, CreditCard, AlertCircle, XCircle } from 'lucide-react';
 import { apiService } from '../services/apiService';
-import { X, ShoppingBasket, Trash2, Plus, Minus, CreditCard, Loader2 } from 'lucide-react';
 
 export const Cart = ({ 
-    isOpen, 
-    onClose, 
-    cart, 
-    updateQuantity, 
-    removeFromCart, 
-    clearCart,
-    setVistaActual, 
-    setVentaActiva,
-    usuario
+    carrito = [], 
+    setCarrito, 
+    usuario,
+    setVistaActual,
+    setMostrarCarrito
 }) => {
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+    const [pedidosPendientes, setPedidosPendientes] = useState([]);
+    const [cargandoPendientes, setCargandoPendientes] = useState(false);
+    const [mostrarPendientes, setMostrarPendientes] = useState(false);
+    const [eliminando, setEliminando] = useState(false);
 
-    if (!isOpen) return null;
+    const carritoArray = Array.isArray(carrito) ? carrito : [];
+    const total = carritoArray.reduce((sum, item) => sum + (item.precio * (item.cantidad || 1)), 0);
 
-    const total = cart.reduce((sum, item) => sum + item.producto.precio * item.cantidad, 0);
-
-    const isClient = usuario && usuario.rol === 'ROLE_CLIENTE';
-    const isAdmin = usuario && usuario.rol === 'ROLE_ADMIN';
-
-    const handleCheckout = async () => {
-        // ✅ Validaciones
-        if (!usuario) {
-            setError('Debes iniciar sesión para comprar');
-            return;
+    useEffect(() => {
+        if (usuario) {
+            cargarPedidosPendientes();
         }
-        if (isAdmin) {
-            setError('Los administradores no pueden realizar compras');
-            return;
-        }
-        if (!isClient) {
-            setError('Solo los clientes pueden realizar compras');
-            return;
-        }
-        if (cart.length === 0) {
-            setError('El carrito está vacío');
-            return;
-        }
+    }, [usuario]);
 
-        // ✅ Verificar token
-        const token = localStorage.getItem('token');
-        if (!token) {
-            setError('Sesión expirada. Inicia sesión nuevamente.');
-            return;
-        }
-
-        setLoading(true);
-        setError('');
-
-        // ✅ Estructura correcta para el backend
-        const ventaPayload = {
-            detalles: cart.map(item => ({
-                producto: { id: item.producto.id },
-                cantidad: item.cantidad,
-                precioUnitario: item.producto.precio
-            }))
-        };
-
+    const cargarPedidosPendientes = async () => {
         try {
-            console.log('📦 Enviando venta:', ventaPayload);
-            const ventaRegistrada = await apiService.crearVenta(ventaPayload);
-            console.log('✅ Venta registrada:', ventaRegistrada);
-            setVentaActiva(ventaRegistrada);
-            clearCart();
-            onClose();
-            setVistaActual('checkout');
-        } catch (err) {
-            console.error('❌ Error en checkout:', err);
-            setError(err.message || 'Error al procesar la compra.');
+            setCargandoPendientes(true);
+            const ventas = await apiService.getMyPurchases();
+            const ventasArray = Array.isArray(ventas) ? ventas : [];
+            const pendientes = ventasArray.filter(v => v.estadoPago === 'PENDIENTE');
+            setPedidosPendientes(pendientes);
+        } catch (error) {
+            console.error('Error al cargar pedidos pendientes:', error);
+            setPedidosPendientes([]);
         } finally {
-            setLoading(false);
+            setCargandoPendientes(false);
         }
     };
 
-    return (
-        <div className="fixed inset-0 z-50 overflow-hidden">
-            <div 
-                className="absolute inset-0 bg-indigo-950/45 backdrop-blur-sm transition-opacity" 
-                onClick={onClose} 
-            />
+    const handleEliminarPedido = async (id) => {
+        if (!window.confirm('¿Estas seguro de que quieres eliminar este pedido pendiente?')) {
+            return;
+        }
 
-            <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
-                <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col">
-                    {/* Cabecera */}
-                    <div className="px-6 py-5 bg-indigo-900 text-white flex items-center justify-between">
-                        <h2 className="text-lg font-bold flex items-center gap-2">
-                            <ShoppingBasket className="w-5 h-5 text-indigo-300" /> Mi Carrito
-                        </h2>
-                        <button 
-                            onClick={onClose}
-                            className="p-1.5 rounded-full hover:bg-indigo-800 transition-colors text-white cursor-pointer"
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
-                    </div>
+        try {
+            setEliminando(true);
+            await apiService.eliminarVenta(id);
+            await cargarPedidosPendientes();
+            alert('Pedido eliminado correctamente');
+        } catch (error) {
+            console.error('Error al eliminar pedido:', error);
+            alert('Error al eliminar el pedido');
+        } finally {
+            setEliminando(false);
+        }
+    };
 
-                    {/* Cuerpo */}
-                    <div className="flex-1 py-6 overflow-y-auto px-6 space-y-4">
-                        {error && (
-                            <div className="bg-red-50 text-red-700 p-4 rounded-xl text-xs border border-red-200">
-                                {error}
-                            </div>
-                        )}
+    const handlePagarPendiente = (venta) => {
+        localStorage.setItem('ventaPendienteId', venta.id);
+        if (setVistaActual) {
+            setVistaActual('checkout');
+        }
+        if (setMostrarCarrito) {
+            setMostrarCarrito(false);
+        }
+    };
 
-                        {cart.length === 0 ? (
-                            <div className="text-center py-20 space-y-4">
-                                <ShoppingBasket className="w-16 h-16 text-gray-300 mx-auto" />
-                                <h3 className="font-bold text-gray-800 text-base">Tu carrito está vacío</h3>
-                                <p className="text-gray-500 text-xs px-6">Explora el catálogo y añade algunos productos para comenzar tu compra.</p>
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                                {cart.map((item) => (
-                                    <div 
-                                        key={item.producto.id} 
-                                        className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100 relative group"
-                                    >
-                                        <img 
-                                            src={item.producto.imagenUrl || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=150"} 
-                                            alt={item.producto.nombre} 
-                                            className="w-16 h-16 object-cover rounded-lg bg-gray-200" 
-                                        />
-                                        
-                                        <div className="flex-grow space-y-1">
-                                            <h4 className="font-bold text-sm text-gray-800 line-clamp-1">{item.producto.nombre}</h4>
-                                            <p className="text-xs text-gray-400 font-semibold">{item.producto.categoria?.nombre}</p>
-                                            
-                                            <div className="flex items-center justify-between mt-2">
-                                                <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden bg-white">
-                                                    <button 
-                                                        onClick={() => updateQuantity(item.producto.id, item.cantidad - 1)}
-                                                        className="p-1 px-2 hover:bg-gray-100 text-gray-500 transition-colors cursor-pointer"
-                                                    >
-                                                        <Minus className="w-3.5 h-3.5" />
-                                                    </button>
-                                                    <span className="px-2.5 text-xs font-bold text-gray-800">{item.cantidad}</span>
-                                                    <button 
-                                                        onClick={() => updateQuantity(item.producto.id, item.cantidad + 1)}
-                                                        className="p-1 px-2 hover:bg-gray-100 text-gray-500 transition-colors cursor-pointer"
-                                                    >
-                                                        <Plus className="w-3.5 h-3.5" />
-                                                    </button>
-                                                </div>
-                                                <span className="font-bold text-sm text-indigo-950">
-                                                    ${(item.producto.precio * item.cantidad).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                                                </span>
-                                            </div>
-                                        </div>
+    const removeFromCart = (id) => {
+        if (setCarrito) {
+            setCarrito(carritoArray.filter(item => item.id !== id));
+        }
+    };
 
-                                        <button 
-                                            onClick={() => removeFromCart(item.producto.id)}
-                                            className="absolute top-2 right-2 p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-600 transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
-                                            title="Eliminar producto"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+    const updateQuantity = (id, cantidad) => {
+        if (cantidad <= 0) {
+            removeFromCart(id);
+            return;
+        }
+        if (setCarrito) {
+            setCarrito(carritoArray.map(item => 
+                item.id === id ? { ...item, cantidad } : item
+            ));
+        }
+    };
 
-                    {/* Pie de Carrito con Totalizadores */}
-                    {cart.length > 0 && (
-                        <div className="border-t border-gray-200 px-6 py-6 bg-gray-50 space-y-4">
-                            <div className="space-y-1.5">
-                                <div className="flex justify-between text-sm text-gray-500">
-                                    <span>Subtotal</span>
-                                    <span>${total.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
-                                </div>
-                                <div className="flex justify-between text-sm text-gray-500">
-                                    <span>Envío</span>
-                                    <span className="text-green-600 font-semibold">Gratis</span>
-                                </div>
-                                <div className="flex justify-between text-base font-extrabold text-gray-900 border-t border-gray-200 pt-3">
-                                    <span>Total</span>
-                                    <span>${total.toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN</span>
-                                </div>
-                            </div>
+    const handleClose = () => {
+        if (setMostrarCarrito) {
+            setMostrarCarrito(false);
+        }
+        if (setVistaActual) {
+            setVistaActual('catalogo');
+        }
+    };
 
+    if (carritoArray.length === 0) {
+        return (
+            <div className="max-w-4xl mx-auto p-6">
+                <div className="rounded-2xl p-12 text-center relative"
+                    style={{
+                        background: 'rgba(15, 18, 30, 0.95)',
+                        border: '1px solid rgba(0, 240, 255, 0.3)',
+                        boxShadow: '0 0 60px rgba(0, 240, 255, 0.08)'
+                    }}
+                >
+                    <button
+                        onClick={handleClose}
+                        className="absolute top-4 right-4 p-2 rounded-full transition-all duration-300"
+                        style={{
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            color: '#8a8aaa'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.target.style.background = 'rgba(255, 255, 255, 0.05)';
+                        }}
+                    >
+                        <XCircle className="w-6 h-6" />
+                    </button>
+
+                    <ShoppingCart className="w-24 h-24 mx-auto mb-4" style={{ color: '#00f0ff' }} />
+                    <h2 className="text-2xl font-bold mb-2"
+                        style={{
+                            fontFamily: "'Orbitron', monospace",
+                            color: '#00f0ff'
+                        }}
+                    >
+                        CARRITO VACIO
+                    </h2>
+                    <p className="text-sm" style={{ color: '#8a8aaa' }}>
+                        No hay productos en tu carrito.
+                    </p>
+
+                    {pedidosPendientes.length > 0 && (
+                        <div className="mt-6">
                             <button
-                                onClick={handleCheckout}
-                                disabled={loading || !isClient || isAdmin}
-                                className={`w-full p-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-md transition-all duration-200 cursor-pointer ${
-                                    isClient && !isAdmin
-                                        ? 'bg-indigo-600 hover:bg-indigo-700 text-white hover:shadow-lg'
-                                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                }`}
+                                onClick={() => setMostrarPendientes(!mostrarPendientes)}
+                                className="text-sm font-medium transition-colors duration-300"
+                                style={{
+                                    color: '#ff00c8',
+                                    background: 'rgba(255, 0, 200, 0.1)',
+                                    padding: '8px 20px',
+                                    borderRadius: '8px',
+                                    border: '1px solid rgba(255, 0, 200, 0.2)'
+                                }}
                             >
-                                {loading ? (
-                                    <>
-                                        <Loader2 className="w-5 h-5 animate-spin" /> Procesando Compra...
-                                    </>
-                                ) : isAdmin ? (
-                                    '❌ Administradores no pueden comprar'
-                                ) : !usuario ? (
-                                    '🔒 Inicia sesión para comprar'
-                                ) : (
-                                    <>
-                                        <CreditCard className="w-5 h-5" /> Proceder al Pago
-                                    </>
-                                )}
+                                {mostrarPendientes ? 'Ocultar' : 'Mostrar'} Pedidos Pendientes ({pedidosPendientes.length})
                             </button>
 
-                            {isAdmin && cart.length > 0 && (
-                                <p className="text-xs text-center text-red-500 font-semibold">
-                                    Los administradores solo pueden gestionar productos, no comprar.
-                                </p>
+                            {mostrarPendientes && (
+                                <div className="mt-4 space-y-3">
+                                    {pedidosPendientes.map((venta) => (
+                                        <div
+                                            key={venta.id}
+                                            className="p-4 rounded-xl flex justify-between items-center"
+                                            style={{
+                                                background: 'rgba(255, 0, 200, 0.05)',
+                                                border: '1px solid rgba(255, 0, 200, 0.2)'
+                                            }}
+                                        >
+                                            <div className="text-left">
+                                                <p className="text-sm font-medium" style={{ color: '#c8c8e8' }}>
+                                                    Pedido #{venta.id}
+                                                </p>
+                                                <p className="text-xs" style={{ color: '#8a8aaa' }}>
+                                                    Total: ${venta.total?.toFixed(2) || '0.00'}
+                                                </p>
+                                                <p className="text-xs" style={{ color: '#ff44b0' }}>
+                                                    Pendiente de pago
+                                                </p>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => handlePagarPendiente(venta)}
+                                                    className="px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300"
+                                                    style={{
+                                                        background: 'linear-gradient(135deg, #00f0ff, #00a8cc)',
+                                                        border: '1px solid #00f0ff',
+                                                        color: '#fff',
+                                                        boxShadow: '0 0 20px rgba(0, 240, 255, 0.3)'
+                                                    }}
+                                                >
+                                                    <CreditCard className="w-4 h-4 inline mr-1" />
+                                                    Pagar
+                                                </button>
+                                                <button
+                                                    onClick={() => handleEliminarPedido(venta.id)}
+                                                    disabled={eliminando}
+                                                    className="px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300"
+                                                    style={{
+                                                        background: 'rgba(255, 0, 0, 0.1)',
+                                                        border: '1px solid rgba(255, 0, 0, 0.3)',
+                                                        color: '#ff4444',
+                                                        opacity: eliminando ? 0.5 : 1,
+                                                        cursor: eliminando ? 'not-allowed' : 'pointer'
+                                                    }}
+                                                >
+                                                    <Trash2 className="w-4 h-4 inline mr-1" />
+                                                    {eliminando ? '...' : 'Eliminar'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             )}
                         </div>
                     )}
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="max-w-4xl mx-auto p-6">
+            <div className="rounded-2xl p-6"
+                style={{
+                    background: 'rgba(15, 18, 30, 0.95)',
+                    border: '1px solid rgba(0, 240, 255, 0.3)',
+                    boxShadow: '0 0 60px rgba(0, 240, 255, 0.08)'
+                }}
+            >
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-bold flex items-center gap-2"
+                        style={{
+                            fontFamily: "'Orbitron', monospace",
+                            color: '#00f0ff',
+                            textShadow: '0 0 30px rgba(0, 240, 255, 0.3)'
+                        }}
+                    >
+                        <ShoppingCart className="w-6 h-6" />
+                        CARRITO DE COMPRAS
+                        {carritoArray.length > 0 && (
+                            <span className="text-sm font-normal ml-2" style={{ color: '#8a8aaa' }}>
+                                ({carritoArray.length} productos)
+                            </span>
+                        )}
+                    </h2>
+                    <button
+                        onClick={handleClose}
+                        className="p-2 rounded-full transition-all duration-300"
+                        style={{
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            color: '#8a8aaa'
+                        }}
+                    >
+                        <XCircle className="w-6 h-6" />
+                    </button>
+                </div>
+
+                <div className="space-y-4">
+                    {carritoArray.map((item) => (
+                        <div
+                            key={item.id}
+                            className="flex items-center gap-4 p-4 rounded-xl"
+                            style={{
+                                background: 'rgba(255, 255, 255, 0.03)',
+                                border: '1px solid rgba(255, 255, 255, 0.05)'
+                            }}
+                        >
+                            <img
+                                src={item.imagenUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=300'}
+                                alt={item.nombre}
+                                className="w-20 h-20 object-cover rounded-xl"
+                            />
+                            <div className="flex-1">
+                                <h3 className="font-medium" style={{ color: '#e8e8ff' }}>
+                                    {item.nombre}
+                                </h3>
+                                <p className="text-sm" style={{ color: '#00f0ff' }}>
+                                    ${item.precio?.toFixed(2) || '0.00'}
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => updateQuantity(item.id, (item.cantidad || 1) - 1)}
+                                    className="p-1 rounded-xl transition-all duration-300"
+                                    style={{
+                                        background: 'rgba(255, 255, 255, 0.05)',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        color: '#8a8aaa'
+                                    }}
+                                >
+                                    <Minus className="w-4 h-4" />
+                                </button>
+                                <span style={{ color: '#c8c8e8' }}>{item.cantidad || 1}</span>
+                                <button
+                                    onClick={() => updateQuantity(item.id, (item.cantidad || 1) + 1)}
+                                    className="p-1 rounded-xl transition-all duration-300"
+                                    style={{
+                                        background: 'rgba(255, 255, 255, 0.05)',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        color: '#8a8aaa'
+                                    }}
+                                >
+                                    <Plus className="w-4 h-4" />
+                                </button>
+                            </div>
+                            <button
+                                onClick={() => removeFromCart(item.id)}
+                                className="p-2 rounded-xl transition-all duration-300"
+                                style={{
+                                    color: '#ff00c8',
+                                    background: 'rgba(255, 0, 200, 0.05)',
+                                    border: '1px solid rgba(255, 0, 200, 0.1)'
+                                }}
+                            >
+                                <Trash2 className="w-5 h-5" />
+                            </button>
+                        </div>
+                    ))}
+                </div>
+
+                <div className="mt-6 pt-4 border-t"
+                    style={{ borderColor: 'rgba(0, 240, 255, 0.1)' }}
+                >
+                    <div className="flex justify-between items-center mb-4">
+                        <span className="text-lg font-bold" style={{ color: '#c8c8e8' }}>
+                            Total:
+                        </span>
+                        <span className="text-2xl font-bold"
+                            style={{
+                                fontFamily: "'Orbitron', monospace",
+                                color: '#00f0ff',
+                                textShadow: '0 0 30px rgba(0, 240, 255, 0.3)'
+                            }}
+                        >
+                            ${total.toFixed(2)}
+                        </span>
+                    </div>
+
+                    <button
+                        onClick={() => {
+                            if (setVistaActual) {
+                                setVistaActual('checkout');
+                            }
+                            if (setMostrarCarrito) {
+                                setMostrarCarrito(false);
+                            }
+                        }}
+                        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all duration-300"
+                        style={{
+                            background: 'linear-gradient(135deg, #00f0ff, #00a8cc)',
+                            border: '1px solid #00f0ff',
+                            color: '#fff',
+                            boxShadow: '0 0 30px rgba(0, 240, 255, 0.3)'
+                        }}
+                    >
+                        <CreditCard className="w-4 h-4" />
+                        Pagar Ahora
+                    </button>
                 </div>
             </div>
         </div>
