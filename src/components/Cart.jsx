@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Trash2, Plus, Minus, CreditCard, XCircle } from 'lucide-react';
+import { apiService } from '../services/apiService';
 
 export const Cart = ({ 
     isOpen, 
@@ -9,11 +10,74 @@ export const Cart = ({
     removeFromCart, 
     clearCart,
     setVistaActual,
+    setVentaActiva,
     usuario
 }) => {
+    const [procesandoPago, setProcesandoPago] = useState(false);
+    const [errorPago, setErrorPago] = useState('');
+
     const total = cart.reduce((sum, item) => sum + (item.precio * (item.cantidad || 1)), 0);
 
     if (!isOpen) return null;
+
+    const handlePagar = async () => {
+        if (!usuario) {
+            alert('Debes iniciar sesión para comprar');
+            setVistaActual('login');
+            return;
+        }
+
+        if (cart.length === 0) {
+            alert('No hay productos en el carrito');
+            return;
+        }
+
+        setProcesandoPago(true);
+        setErrorPago('');
+
+        try {
+            // Crear la venta
+            const ventaData = {
+                items: cart.map(item => ({
+                    productoId: item.id,
+                    cantidad: item.cantidad || 1,
+                    precio: item.precio
+                })),
+                total: total,
+                metodoPago: 'tarjeta'
+            };
+
+            console.log('Creando venta:', ventaData);
+            const response = await apiService.crearVenta(ventaData);
+            console.log('Venta creada:', response);
+
+            if (response && response.id) {
+                // Crear intención de pago
+                const pagoResponse = await apiService.crearIntencionPago(response.id);
+                console.log('Intención de pago:', pagoResponse);
+
+                if (pagoResponse && pagoResponse.url) {
+                    // Redirigir a Stripe
+                    window.location.href = pagoResponse.url;
+                } else if (pagoResponse && pagoResponse.clientSecret) {
+                    // Si tienes Stripe Elements, usarlo
+                    setVentaActiva(response);
+                    setVistaActual('checkout');
+                    onClose();
+                } else {
+                    setErrorPago('Error al procesar el pago');
+                    setProcesandoPago(false);
+                }
+            } else {
+                setErrorPago('Error al crear la venta');
+                setProcesandoPago(false);
+            }
+        } catch (error) {
+            console.error('Error en el pago:', error);
+            setErrorPago(error.message || 'Error al procesar el pago');
+            setProcesandoPago(false);
+        }
+    };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center"
@@ -153,6 +217,18 @@ export const Cart = ({
                                 ))}
                             </div>
 
+                            {errorPago && (
+                                <div className="mt-4 p-3 rounded-xl text-sm"
+                                    style={{
+                                        background: 'rgba(255, 0, 0, 0.1)',
+                                        border: '1px solid rgba(255, 0, 0, 0.2)',
+                                        color: '#ff4444'
+                                    }}
+                                >
+                                    ❌ {errorPago}
+                                </div>
+                            )}
+
                             <div className="mt-6 pt-4 border-t"
                                 style={{ borderColor: 'rgba(0, 240, 255, 0.1)' }}
                             >
@@ -172,28 +248,29 @@ export const Cart = ({
                                 </div>
 
                                 <button
-                                    onClick={() => {
-                                        setVistaActual('checkout');
-                                        onClose();
-                                    }}
+                                    onClick={handlePagar}
+                                    disabled={procesandoPago}
                                     className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all duration-300"
                                     style={{
-                                        background: 'linear-gradient(135deg, #00f0ff, #00a8cc)',
+                                        background: procesandoPago ? 'rgba(255,255,255,0.05)' : 'linear-gradient(135deg, #00f0ff, #00a8cc)',
                                         border: '1px solid #00f0ff',
-                                        color: '#fff',
-                                        boxShadow: '0 0 30px rgba(0, 240, 255, 0.3)'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.target.style.boxShadow = '0 0 60px rgba(0, 240, 255, 0.5)';
-                                        e.target.style.transform = 'scale(1.02)';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.target.style.boxShadow = '0 0 30px rgba(0, 240, 255, 0.3)';
-                                        e.target.style.transform = 'scale(1)';
+                                        color: procesandoPago ? '#6a6a8a' : '#fff',
+                                        boxShadow: procesandoPago ? 'none' : '0 0 30px rgba(0, 240, 255, 0.3)',
+                                        cursor: procesandoPago ? 'not-allowed' : 'pointer',
+                                        opacity: procesandoPago ? 0.5 : 1
                                     }}
                                 >
-                                    <CreditCard className="w-4 h-4" />
-                                    PAGAR AHORA
+                                    {procesandoPago ? (
+                                        <>
+                                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-500 border-t-transparent" />
+                                            Procesando...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CreditCard className="w-4 h-4" />
+                                            PAGAR CON TARJETA
+                                        </>
+                                    )}
                                 </button>
 
                                 <button
